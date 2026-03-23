@@ -1,0 +1,130 @@
+package templates
+
+import "fmt"
+
+templ ExpensesNew(categories []CategoryView, today string) {
+	@AppLayout("New Expense", "/expenses") {
+		<div class="p-8">
+			<div class="mb-6">
+				<a href="/expenses" class="font-mono text-2xs text-parchment-dark tracking-wider uppercase hover:text-bone transition-colors">
+					&larr; Expenses
+				</a>
+			</div>
+			<h1 class="font-display text-2xl text-bone mb-8">New Expense</h1>
+			<div class="card-vessel max-w-xl">
+				<div class="section-label">Expense Details</div>
+				@expenseForm(nil, categories, today, "/expenses")
+			</div>
+		</div>
+	}
+}
+
+templ ExpensesEdit(e *ExpenseView, categories []CategoryView) {
+	@AppLayout("Edit Expense", "/expenses") {
+		<div class="p-8">
+			<div class="mb-6">
+				<a href="/expenses" class="font-mono text-2xs text-parchment-dark tracking-wider uppercase hover:text-bone transition-colors">
+					&larr; Expenses
+				</a>
+			</div>
+			<h1 class="font-display text-2xl text-bone mb-8">Edit Expense</h1>
+			<div class="card-vessel max-w-xl">
+				<div class="section-label">Expense Details</div>
+				@expenseForm(e, categories, "", fmt.Sprintf("/expenses/%d", e.ID))
+			</div>
+			<!-- Delete -->
+			<div class="max-w-xl mt-6">
+				<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/expenses/delete/%d", e.ID)) }>
+					<button type="submit" class="btn btn-danger" onclick="return confirm('Delete this expense?')">
+						Delete Expense
+					</button>
+				</form>
+			</div>
+		</div>
+	}
+}
+
+templ expenseForm(e *ExpenseView, categories []CategoryView, today string, action string) {
+	<form method="POST" action={ templ.SafeURL(action) } class="space-y-5">
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+			<div>
+				<label for="date" class="label-mono block mb-2">Date</label>
+				<input
+					type="date"
+					id="date"
+					name="date"
+					required
+					class="input-cortex"
+					if e != nil {
+						value={ e.FormatDateInput() }
+					} else {
+						value={ today }
+					}
+				/>
+			</div>
+			<div>
+				<label for="amount" class="label-mono block mb-2">Amount</label>
+				<input
+					type="number"
+					id="amount"
+					name="amount"
+					step="0.01"
+					required
+					class="input-cortex"
+					placeholder="0.00"
+					if e != nil {
+						value={ e.FormatAmountInput() }
+					}
+				/>
+			</div>
+			<div>
+				<label for="vendor" class="label-mono block mb-2">Vendor</label>
+				<input
+					type="text"
+					id="vendor"
+					name="vendor"
+					required
+					class="input-cortex"
+					if e != nil {
+						value={ e.Vendor }
+					}
+				/>
+			</div>
+			<div>
+				<label for="category_id" class="label-mono block mb-2">Category</label>
+				<select id="category_id" name="category_id" required class="input-cortex">
+					for _, c := range categories {
+						if e != nil && c.ID == e.CategoryID {
+							<option value={ fmt.Sprintf("%d", c.ID) } selected>{ c.Name }</option>
+						} else {
+							<option value={ fmt.Sprintf("%d", c.ID) }>{ c.Name }</option>
+						}
+					}
+				</select>
+			</div>
+		</div>
+		<div>
+			<label for="notes" class="label-mono block mb-2">Notes</label>
+			<textarea
+				id="notes"
+				name="notes"
+				rows="2"
+				class="input-cortex"
+			>
+				if e != nil {
+					{ e.Notes }
+				}
+			</textarea>
+		</div>
+		<div class="flex gap-3 pt-2">
+			<button type="submit" class="btn btn-primary">
+				if e != nil {
+					Save Changes
+				} else {
+					Create Expense
+				}
+			</button>
+			<a href="/expenses" class="btn btn-secondary">Cancel</a>
+		</div>
+	</form>
+}
