@@ -1,0 +1,140 @@
+package templates
+
+import "fmt"
+
+templ ExpensesList(data ExpenseListData) {
+	@AppLayout("Expenses", "/expenses") {
+		<div class="p-8">
+			<!-- Page header -->
+			<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+				<div>
+					<h1 class="font-display text-2xl text-bone">Expenses</h1>
+					<p class="font-mono text-2xs text-parchment-dark tracking-wider uppercase mt-1">
+						{ fmt.Sprintf("%d", len(data.Expenses)) } entries &middot; { data.FormatTotal() } total
+					</p>
+				</div>
+				<div class="flex gap-3">
+					<a href="/expenses/new" class="btn btn-primary">+ New Expense</a>
+					<a href="/expenses/categories" class="btn btn-secondary">Categories</a>
+				</div>
+			</div>
+			<!-- Filters -->
+			<form method="GET" action="/expenses" class="card-vessel mb-6">
+				<div class="section-label">Filters</div>
+				<div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+					<div>
+						<label for="from" class="label-mono block mb-2">From</label>
+						<input type="date" id="from" name="from" value={ data.FilterFrom } class="input-cortex"/>
+					</div>
+					<div>
+						<label for="to" class="label-mono block mb-2">To</label>
+						<input type="date" id="to" name="to" value={ data.FilterTo } class="input-cortex"/>
+					</div>
+					<div>
+						<label for="category_id" class="label-mono block mb-2">Category</label>
+						<select id="category_id" name="category_id" class="input-cortex">
+							<option value="">All</option>
+							for _, c := range data.Categories {
+								if c.ID == data.FilterCat {
+									<option value={ fmt.Sprintf("%d", c.ID) } selected>{ c.Name }</option>
+								} else {
+									<option value={ fmt.Sprintf("%d", c.ID) }>{ c.Name }</option>
+								}
+							}
+						</select>
+					</div>
+					<div class="flex gap-2">
+						<button type="submit" class="btn btn-primary">Filter</button>
+						if data.FilterFrom != "" || data.FilterTo != "" || data.FilterCat != 0 {
+							<a href="/expenses" class="btn btn-ghost">Clear</a>
+						}
+					</div>
+				</div>
+			</form>
+			if len(data.Expenses) == 0 {
+				<div class="card-vessel text-center py-12">
+					if data.FilterFrom != "" || data.FilterTo != "" || data.FilterCat != 0 {
+						<p class="font-display text-xl text-parchment mb-2">No expenses match those filters</p>
+						<p class="text-sm text-parchment-dark mb-6">Try adjusting the date range or category.</p>
+					} else {
+						<p class="font-display text-xl text-parchment mb-2">No expenses logged yet</p>
+						<p class="text-sm text-parchment-dark mb-6">Track your first expense to get started.</p>
+					}
+					<a href="/expenses/new" class="btn btn-primary">+ New Expense</a>
+				</div>
+			} else {
+				<!-- Desktop table -->
+				<div class="card-vessel !p-0 overflow-hidden hidden md:block">
+					<table class="w-full">
+						<thead>
+							<tr class="border-b border-rust/25">
+								<th class="label-mono text-left px-5 py-3">Date</th>
+								<th class="label-mono text-left px-5 py-3">Vendor</th>
+								<th class="label-mono text-left px-5 py-3">Category</th>
+								<th class="label-mono text-right px-5 py-3">Amount</th>
+								<th class="label-mono text-left px-5 py-3">Notes</th>
+								<th class="px-5 py-3 w-16"></th>
+							</tr>
+						</thead>
+						<tbody>
+							for _, e := range data.Expenses {
+								<tr class="border-b border-slate/50 hover:bg-rust/5 transition-colors">
+									<td class="px-5 py-3 text-parchment text-sm font-mono">
+										{ e.FormatDate() }
+									</td>
+									<td class="px-5 py-3 text-bone text-sm">
+										{ e.Vendor }
+									</td>
+									<td class="px-5 py-3">
+										<span class="badge badge-cortex">{ e.CategoryName }</span>
+									</td>
+									<td class="px-5 py-3 text-bone font-mono text-sm text-right">
+										{ e.FormatAmount() }
+									</td>
+									<td class="px-5 py-3 text-parchment-dark text-sm max-w-xs truncate">
+										{ e.Notes }
+									</td>
+									<td class="px-5 py-3">
+										<a href={ templ.SafeURL(fmt.Sprintf("/expenses/%d/edit", e.ID)) } class="font-mono text-2xs text-parchment-dark hover:text-bone transition-colors tracking-wider uppercase">
+											Edit
+										</a>
+									</td>
+								</tr>
+							}
+						</tbody>
+						<tfoot>
+							<tr>
+								<td colspan="3" class="px-5 py-3 text-right font-mono text-xs uppercase tracking-widest text-bone">Total</td>
+								<td class="px-5 py-3 text-right text-bone font-mono text-base font-bold">{ data.FormatTotal() }</td>
+								<td colspan="2"></td>
+							</tr>
+						</tfoot>
+					</table>
+				</div>
+				<!-- Mobile cards -->
+				<div class="md:hidden space-y-3">
+					for _, e := range data.Expenses {
+						<a href={ templ.SafeURL(fmt.Sprintf("/expenses/%d/edit", e.ID)) } class="card-vessel block hover:border-rust/50 transition-colors">
+							<div class="flex items-center justify-between mb-1">
+								<span class="text-bone text-sm">{ e.Vendor }</span>
+								<span class="font-mono text-sm text-bone">{ e.FormatAmount() }</span>
+							</div>
+							<div class="flex items-center justify-between">
+								<span class="badge badge-cortex">{ e.CategoryName }</span>
+								<span class="text-2xs text-parchment-dark font-mono">{ e.FormatDate() }</span>
+							</div>
+							if e.Notes != "" {
+								<p class="text-2xs text-parchment-dark mt-2 truncate">{ e.Notes }</p>
+							}
+						</a>
+					}
+					<!-- Mobile total -->
+					<div class="card-vessel flex justify-between items-center">
+						<span class="font-mono text-xs uppercase tracking-widest text-bone">Total</span>
+						<span class="font-mono text-lg text-bone font-bold">{ data.FormatTotal() }</span>
+					</div>
+				</div>
+			}
+		</div>
+	}
+}

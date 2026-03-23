@@ -204,3 +204,50 @@ type SettingsView struct {
 func AllStatuses() []InvoiceStatus {
 	return []InvoiceStatus{StatusDraft, StatusSent, StatusViewed, StatusPaid, StatusVoid}
 }
+
+// CategoryView is a view-layer expense category.
+type CategoryView struct {
+	ID   int64
+	Name string
+}
+
+// ExpenseView is a view-layer expense for list and detail pages.
+type ExpenseView struct {
+	ID           int64
+	CategoryID   int64
+	CategoryName string
+	Vendor       string
+	Amount       float64
+	Notes        string
+	Date         time.Time
+}
+
+func (e ExpenseView) FormatAmount() string {
+	return fmt.Sprintf("$%.2f", e.Amount)
+}
+
+func (e ExpenseView) FormatDate() string {
+	return e.Date.Format("Jan 2, 2006")
+}
+
+func (e ExpenseView) FormatDateInput() string {
+	return e.Date.Format("2006-01-02")
+}
+
+func (e ExpenseView) FormatAmountInput() string {
+	return fmt.Sprintf("%.2f", e.Amount)
+}
+
+// ExpenseListData holds everything the expense list page needs.
+type ExpenseListData struct {
+	Expenses   []ExpenseView
+	Categories []CategoryView
+	FilterFrom string
+	FilterTo   string
+	FilterCat  int64
+	Total      float64
+}
+
+func (d ExpenseListData) FormatTotal() string {
+	return fmt.Sprintf("$%.2f", d.Total)
+}
