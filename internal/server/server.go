@@ -8,10 +8,11 @@ import (
 	"fireflysoftware.dev/manifest/internal/expense"
 	"fireflysoftware.dev/manifest/internal/invoice"
 	"fireflysoftware.dev/manifest/internal/payment"
+	"fireflysoftware.dev/manifest/internal/reports"
 	"fireflysoftware.dev/manifest/internal/settings"
 )
 
-func New(authStore *auth.SessionStore, clientHandler *client.Handler, invoiceHandler *invoice.Handler, settingsHandler *settings.Handler, webhookHandler *payment.WebhookHandler, expenseHandler *expense.Handler) http.Handler {
+func New(authStore *auth.SessionStore, clientHandler *client.Handler, invoiceHandler *invoice.Handler, settingsHandler *settings.Handler, webhookHandler *payment.WebhookHandler, expenseHandler *expense.Handler, reportsHandler *reports.Handler) http.Handler {
 	mux := http.NewServeMux()
 
 	// Static files
@@ -34,7 +35,7 @@ func New(authStore *auth.SessionStore, clientHandler *client.Handler, invoiceHan
 	protected.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Write([]byte(`<h1>Manifest</h1><p>Dashboard coming soon.</p>
-<nav><a href="/clients">Clients</a> | <a href="/invoices">Invoices</a> | <a href="/expenses">Expenses</a> | <a href="/settings">Settings</a></nav>`))
+<nav><a href="/clients">Clients</a> | <a href="/invoices">Invoices</a> | <a href="/expenses">Expenses</a> | <a href="/reports">Reports</a> | <a href="/settings">Settings</a></nav>`))
 	})
 
 	// Clients
@@ -74,6 +75,12 @@ func New(authStore *auth.SessionStore, clientHandler *client.Handler, invoiceHan
 	protected.HandleFunc("GET /expenses/{id}/edit", expenseHandler.Edit)
 	protected.HandleFunc("POST /expenses/{id}", expenseHandler.Update)
 	protected.HandleFunc("POST /expenses/delete/{id}", expenseHandler.Delete)
+
+	// Reports
+	protected.HandleFunc("GET /reports", reportsHandler.Index)
+	protected.HandleFunc("GET /reports/revenue", reportsHandler.Revenue)
+	protected.HandleFunc("GET /reports/ar", reportsHandler.AR)
+	protected.HandleFunc("GET /reports/pl", reportsHandler.PL)
 
 	mux.Handle("/", authStore.Middleware(protected))
 

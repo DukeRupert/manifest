@@ -13,6 +13,7 @@ import (
 	"fireflysoftware.dev/manifest/internal/expense"
 	"fireflysoftware.dev/manifest/internal/invoice"
 	"fireflysoftware.dev/manifest/internal/payment"
+	"fireflysoftware.dev/manifest/internal/reports"
 	"fireflysoftware.dev/manifest/internal/server"
 	"fireflysoftware.dev/manifest/internal/settings"
 	stripe "github.com/stripe/stripe-go/v82"
@@ -67,7 +68,10 @@ func runServer() {
 	expenseStore := expense.NewStore(pool)
 	expenseHandler := expense.NewHandler(expenseStore)
 
-	handler := server.New(authStore, clientHandler, invoiceHandler, settingsHandler, webhookHandler, expenseHandler)
+	reportsStore := reports.NewStore(pool)
+	reportsHandler := reports.NewHandler(reportsStore)
+
+	handler := server.New(authStore, clientHandler, invoiceHandler, settingsHandler, webhookHandler, expenseHandler, reportsHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {
