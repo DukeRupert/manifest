@@ -205,6 +205,98 @@ func AllStatuses() []InvoiceStatus {
 	return []InvoiceStatus{StatusDraft, StatusSent, StatusViewed, StatusPaid, StatusVoid}
 }
 
+// --- Reports view models ---
+
+// DashboardSummaryView holds the reports index data.
+type DashboardSummaryView struct {
+	MonthRevenue float64
+	ARCount      int
+	ARTotal      float64
+	YTDRevenue   float64
+	YTDExpenses  float64
+	YTDNet       float64
+}
+
+func (d DashboardSummaryView) FormatMonthRevenue() string { return fmt.Sprintf("$%.2f", d.MonthRevenue) }
+func (d DashboardSummaryView) FormatARTotal() string      { return fmt.Sprintf("$%.2f", d.ARTotal) }
+func (d DashboardSummaryView) FormatYTDRevenue() string   { return fmt.Sprintf("$%.2f", d.YTDRevenue) }
+func (d DashboardSummaryView) FormatYTDExpenses() string  { return fmt.Sprintf("$%.2f", d.YTDExpenses) }
+func (d DashboardSummaryView) FormatYTDNet() string       { return fmt.Sprintf("$%.2f", d.YTDNet) }
+
+// RevenueRowView is a single month in the revenue report.
+type RevenueRowView struct {
+	Month        string
+	InvoiceCount int
+	Revenue      float64
+}
+
+func (r RevenueRowView) FormatRevenue() string { return fmt.Sprintf("$%.2f", r.Revenue) }
+
+// RevenueReportView holds the full revenue report page data.
+type RevenueReportView struct {
+	Year     int
+	Rows     []RevenueRowView
+	YTDTotal float64
+}
+
+func (r RevenueReportView) FormatYTD() string { return fmt.Sprintf("$%.2f", r.YTDTotal) }
+
+// ARRowView is a single outstanding invoice.
+type ARRowView struct {
+	Number      string
+	ClientName  string
+	DueDate     string
+	IssuedAt    string
+	DaysOverdue *int
+	Total       float64
+}
+
+func (a ARRowView) FormatTotal() string { return fmt.Sprintf("$%.2f", a.Total) }
+func (a ARRowView) IsOverdue() bool     { return a.DaysOverdue != nil && *a.DaysOverdue > 0 }
+func (a ARRowView) FormatDaysOverdue() string {
+	if a.DaysOverdue == nil {
+		return "—"
+	}
+	return fmt.Sprintf("%d", *a.DaysOverdue)
+}
+
+// ARReportView holds the full AR report page data.
+type ARReportView struct {
+	Rows  []ARRowView
+	Total float64
+	Count int
+}
+
+func (a ARReportView) FormatTotal() string { return fmt.Sprintf("$%.2f", a.Total) }
+
+// PLRowView is a single month in the P&L report.
+type PLRowView struct {
+	Month    string
+	Revenue  float64
+	Expenses float64
+	Net      float64
+}
+
+func (p PLRowView) FormatRevenue() string  { return fmt.Sprintf("$%.2f", p.Revenue) }
+func (p PLRowView) FormatExpenses() string { return fmt.Sprintf("$%.2f", p.Expenses) }
+func (p PLRowView) FormatNet() string      { return fmt.Sprintf("$%.2f", p.Net) }
+func (p PLRowView) IsNegative() bool       { return p.Net < 0 }
+
+// PLReportView holds the full P&L report page data.
+type PLReportView struct {
+	Rows         []PLRowView
+	TotalRevenue float64
+	TotalExpense float64
+	TotalNet     float64
+	FilterFrom   string
+	FilterTo     string
+}
+
+func (p PLReportView) FormatTotalRevenue() string { return fmt.Sprintf("$%.2f", p.TotalRevenue) }
+func (p PLReportView) FormatTotalExpense() string { return fmt.Sprintf("$%.2f", p.TotalExpense) }
+func (p PLReportView) FormatTotalNet() string     { return fmt.Sprintf("$%.2f", p.TotalNet) }
+func (p PLReportView) IsNetNegative() bool        { return p.TotalNet < 0 }
+
 // CategoryView is a view-layer expense category.
 type CategoryView struct {
 	ID   int64

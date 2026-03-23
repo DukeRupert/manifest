@@ -1,10 +1,11 @@
 package reports
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
+
+	"fireflysoftware.dev/manifest/templates"
 )
 
 type Handler struct {
@@ -22,35 +23,15 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, `<h1>Reports Dashboard</h1>
-<div style="display:flex;gap:24px;flex-wrap:wrap">
-  <div style="border:1px solid #ccc;padding:16px;min-width:200px">
-    <h3>This Month Revenue</h3>
-    <p style="font-size:24px"><strong>$%.2f</strong></p>
-  </div>
-  <div style="border:1px solid #ccc;padding:16px;min-width:200px">
-    <h3>Outstanding AR</h3>
-    <p style="font-size:24px"><strong>%d invoices / $%.2f</strong></p>
-  </div>
-  <div style="border:1px solid #ccc;padding:16px;min-width:200px">
-    <h3>YTD Revenue</h3>
-    <p style="font-size:24px"><strong>$%.2f</strong></p>
-  </div>
-  <div style="border:1px solid #ccc;padding:16px;min-width:200px">
-    <h3>YTD Expenses</h3>
-    <p style="font-size:24px"><strong>$%.2f</strong></p>
-  </div>
-  <div style="border:1px solid #ccc;padding:16px;min-width:200px">
-    <h3>YTD Net</h3>
-    <p style="font-size:24px"><strong>$%.2f</strong></p>
-  </div>
-</div>
-<nav style="margin-top:24px">
-  <a href="/reports/revenue">Revenue Report</a> |
-  <a href="/reports/ar">Outstanding AR</a> |
-  <a href="/reports/pl">P&amp;L Report</a>
-</nav>`, d.MonthRevenue, d.ARCount, d.ARTotal, d.YTDRevenue, d.YTDExpenses, d.YTDNet)
+	v := &templates.DashboardSummaryView{
+		MonthRevenue: d.MonthRevenue,
+		ARCount:      d.ARCount,
+		ARTotal:      d.ARTotal,
+		YTDRevenue:   d.YTDRevenue,
+		YTDExpenses:  d.YTDExpenses,
+		YTDNet:       d.YTDNet,
+	}
+	templates.ReportsIndex(v).Render(r.Context(), w)
 }
 
 func (h *Handler) Revenue(w http.ResponseWriter, r *http.Request) {
@@ -68,24 +49,22 @@ func (h *Handler) Revenue(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var ytd float64
-	for _, r := range rows {
-		ytd += r.Revenue
+	views := make([]templates.RevenueRowView, len(rows))
+	for i, row := range rows {
+		ytd += row.Revenue
+		views[i] = templates.RevenueRowView{
+			Month:        row.Month.Format("January 2006"),
+			InvoiceCount: row.InvoiceCount,
+			Revenue:      row.Revenue,
+		}
 	}
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, `<h1>Revenue Report — %d</h1>`, year)
-	fmt.Fprintf(w, `<p><strong>YTD Total: $%.2f</strong></p>`, ytd)
-
-	// Year picker
-	fmt.Fprintf(w, `<form method="GET"><label>Year <input type="number" name="year" value="%d"></label> <button type="submit">Go</button></form>`, year)
-
-	fmt.Fprintf(w, `<table><tr><th>Month</th><th>Invoices</th><th>Revenue</th></tr>`)
-	for _, row := range rows {
-		fmt.Fprintf(w, `<tr><td>%s</td><td>%d</td><td>$%.2f</td></tr>`,
-			row.Month.Format("January 2006"), row.InvoiceCount, row.Revenue)
+	data := &templates.RevenueReportView{
+		Year:     year,
+		Rows:     views,
+		YTDTotal: ytd,
 	}
-	fmt.Fprintf(w, `</table>`)
-	fmt.Fprintf(w, `<p><a href="/reports">← Back to Dashboard</a></p>`)
+	templates.ReportsRevenue(data).Render(r.Context(), w)
 }
 
 func (h *Handler) AR(w http.ResponseWriter, r *http.Request) {
@@ -96,33 +75,29 @@ func (h *Handler) AR(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var total float64
-	for _, r := range rows {
-		total += r.Total
-	}
-
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, `<h1>Outstanding Accounts Receivable</h1>`)
-	fmt.Fprintf(w, `<p><strong>Total Outstanding: $%.2f (%d invoices)</strong></p>`, total, len(rows))
-
-	fmt.Fprintf(w, `<table><tr><th>Invoice</th><th>Client</th><th>Issued</th><th>Due</th><th>Days Overdue</th><th>Total</th></tr>`)
-	for _, row := range rows {
-		due := "—"
+	views := make([]templates.ARRowView, len(rows))
+	for i, row := range rows {
+		total += row.Total
+		dueDate := "—"
 		if row.DueDate != nil {
-			due = row.DueDate.Format("2006-01-02")
+			dueDate = row.DueDate.Format("Jan 2, 2006")
 		}
-		overdue := "—"
-		style := ""
-		if row.DaysOverdue != nil {
-			overdue = strconv.Itoa(*row.DaysOverdue)
-			if *row.DaysOverdue > 0 {
-				style = ` style="color:red;font-weight:bold"`
-			}
+		views[i] = templates.ARRowView{
+			Number:      row.Number,
+			ClientName:  row.ClientName,
+			DueDate:     dueDate,
+			IssuedAt:    row.IssuedAt.Format("Jan 2, 2006"),
+			DaysOverdue: row.DaysOverdue,
+			Total:       row.Total,
 		}
-		fmt.Fprintf(w, `<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td%s>%s</td><td>$%.2f</td></tr>`,
-			row.Number, row.ClientName, row.IssuedAt.Format("2006-01-02"), due, style, overdue, row.Total)
 	}
-	fmt.Fprintf(w, `</table>`)
-	fmt.Fprintf(w, `<p><a href="/reports">← Back to Dashboard</a></p>`)
+
+	data := &templates.ARReportView{
+		Rows:  views,
+		Total: total,
+		Count: len(rows),
+	}
+	templates.ReportsAR(data).Render(r.Context(), w)
 }
 
 func (h *Handler) PL(w http.ResponseWriter, r *http.Request) {
@@ -137,7 +112,7 @@ func (h *Handler) PL(w http.ResponseWriter, r *http.Request) {
 	}
 	if t := r.URL.Query().Get("to"); t != "" {
 		if parsed, err := time.Parse("2006-01-02", t); err == nil {
-			to = parsed
+			to = parsed.AddDate(0, 0, 1) // inclusive end date
 		}
 	}
 
@@ -148,38 +123,26 @@ func (h *Handler) PL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var totalRev, totalExp, totalNet float64
-	for _, r := range rows {
-		totalRev += r.Revenue
-		totalExp += r.Expenses
-		totalNet += r.Net
-	}
-
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, `<h1>Profit &amp; Loss</h1>`)
-
-	// Date range picker
-	fmt.Fprintf(w, `<form method="GET">
-  <label>From <input type="date" name="from" value="%s"></label>
-  <label>To <input type="date" name="to" value="%s"></label>
-  <button type="submit">Filter</button>
-</form>`, from.Format("2006-01-02"), to.AddDate(0, 0, -1).Format("2006-01-02"))
-
-	fmt.Fprintf(w, `<table><tr><th>Month</th><th>Revenue</th><th>Expenses</th><th>Net</th></tr>`)
-	for _, row := range rows {
-		netStyle := ""
-		if row.Net < 0 {
-			netStyle = ` style="color:red"`
+	views := make([]templates.PLRowView, len(rows))
+	for i, row := range rows {
+		totalRev += row.Revenue
+		totalExp += row.Expenses
+		totalNet += row.Net
+		views[i] = templates.PLRowView{
+			Month:    row.Month.Format("January 2006"),
+			Revenue:  row.Revenue,
+			Expenses: row.Expenses,
+			Net:      row.Net,
 		}
-		fmt.Fprintf(w, `<tr><td>%s</td><td>$%.2f</td><td>$%.2f</td><td%s>$%.2f</td></tr>`,
-			row.Month.Format("January 2006"), row.Revenue, row.Expenses, netStyle, row.Net)
 	}
-	// YTD summary row
-	netStyle := ""
-	if totalNet < 0 {
-		netStyle = ` style="color:red"`
+
+	data := &templates.PLReportView{
+		Rows:         views,
+		TotalRevenue: totalRev,
+		TotalExpense: totalExp,
+		TotalNet:     totalNet,
+		FilterFrom:   from.Format("2006-01-02"),
+		FilterTo:     to.AddDate(0, 0, -1).Format("2006-01-02"),
 	}
-	fmt.Fprintf(w, `<tr style="font-weight:bold;border-top:2px solid #333"><td>Total</td><td>$%.2f</td><td>$%.2f</td><td%s>$%.2f</td></tr>`,
-		totalRev, totalExp, netStyle, totalNet)
-	fmt.Fprintf(w, `</table>`)
-	fmt.Fprintf(w, `<p><a href="/reports">← Back to Dashboard</a></p>`)
+	templates.ReportsPL(data).Render(r.Context(), w)
 }
