@@ -102,14 +102,18 @@ func (s *Store) Get(ctx context.Context, id int64) (*Invoice, error) {
 	var inv Invoice
 	err := s.pool.QueryRow(ctx, `
 		SELECT i.id, i.number, i.client_id, i.status, i.tax_rate, i.notes, i.due_date,
-		       i.issued_at, i.paid_at, i.view_token, i.created_at, i.updated_at,
+		       i.issued_at, i.paid_at, i.view_token,
+		       i.stripe_payment_intent_id, i.stripe_charge_id, i.amount_paid_cents,
+		       i.created_at, i.updated_at,
 		       c.id, c.name, c.slug, c.email, c.phone, c.billing_address
 		FROM invoices i
 		JOIN clients c ON c.id = i.client_id
 		WHERE i.id = $1
 	`, id).Scan(
 		&inv.ID, &inv.Number, &inv.ClientID, &inv.Status, &inv.TaxRate, &inv.Notes, &inv.DueDate,
-		&inv.IssuedAt, &inv.PaidAt, &inv.ViewToken, &inv.CreatedAt, &inv.UpdatedAt,
+		&inv.IssuedAt, &inv.PaidAt, &inv.ViewToken,
+		&inv.StripePaymentIntentID, &inv.StripeChargeID, &inv.AmountPaidCents,
+		&inv.CreatedAt, &inv.UpdatedAt,
 		&inv.Client.ID, &inv.Client.Name, &inv.Client.Slug, &inv.Client.Email,
 		&inv.Client.Phone, &inv.Client.BillingAddress,
 	)
@@ -278,5 +282,37 @@ func (s *Store) setStatus(ctx context.Context, invoiceID int64, status Status) e
 		`UPDATE invoices SET status = $2, updated_at = NOW() WHERE id = $1`,
 		invoiceID, status,
 	)
+	return err
+}
+
+// SetPaymentIntent persists the Stripe PaymentIntent ID to the invoice.
+func (s *Store) SetPaymentIntent(ctx context.Context, invoiceID int64, intentID string) error {
+	_, err := s.pool.Exec(ctx,
+		`UPDATE invoices SET stripe_payment_intent_id = $2, updated_at = NOW() WHERE id = $1`,
+		invoiceID, intentID,
+	)
+	return err
+}
+
+// GetByPaymentIntent looks up an invoice by its Stripe PaymentIntent ID.
+func (s *Store) GetByPaymentIntent(ctx context.Context, intentID string) (*Invoice, error) {
+	var id int64
+	err := s.pool.QueryRow(ctx,
+		`SELECT id FROM invoices WHERE stripe_payment_intent_id = $1`, intentID,
+	).Scan(&id)
+	if err != nil {
+		return nil, err
+	}
+	return s.Get(ctx, id)
+}
+
+// MarkPaid transitions an invoice to paid and records payment details.
+func (s *Store) MarkPaid(ctx context.Context, params MarkPaidParams) error {
+	_, err := s.pool.Exec(ctx, `
+		UPDATE invoices
+		SET status = 'paid', stripe_charge_id = $2, amount_paid_cents = $3,
+		    paid_at = $4, updated_at = NOW()
+		WHERE id = $1
+	`, params.InvoiceID, params.StripeChargeID, params.AmountPaidCents, params.PaidAt)
 	return err
 }

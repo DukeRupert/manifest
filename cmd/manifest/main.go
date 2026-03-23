@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,8 +11,10 @@ import (
 	"fireflysoftware.dev/manifest/internal/client"
 	"fireflysoftware.dev/manifest/internal/db"
 	"fireflysoftware.dev/manifest/internal/invoice"
+	"fireflysoftware.dev/manifest/internal/payment"
 	"fireflysoftware.dev/manifest/internal/server"
 	"fireflysoftware.dev/manifest/internal/settings"
+	stripe "github.com/stripe/stripe-go/v82"
 )
 
 func main() {
@@ -38,7 +41,29 @@ func runServer() {
 	invoiceStore := invoice.NewStore(pool)
 	invoiceHandler := invoice.NewHandler(invoiceStore, clientStore, settingsStore)
 
-	handler := server.New(authStore, clientHandler, invoiceHandler, settingsHandler)
+	// Stripe setup
+	var webhookHandler *payment.WebhookHandler
+	stripeKey := os.Getenv("STRIPE_SECRET_KEY")
+	webhookSecret := os.Getenv("STRIPE_WEBHOOK_SECRET")
+	if stripeKey != "" {
+		stripe.Key = stripeKey
+		log.Println("Stripe configured")
+
+		invoiceHandler.SetPaymentCreator(func(ctx context.Context, inv *invoice.Invoice) (string, error) {
+			return payment.CreateOrGetIntent(ctx, invoiceStore, payment.CreateIntentParams{
+				InvoiceID:     inv.ID,
+				InvoiceNumber: inv.Number,
+				AmountCents:   payment.TotalCents(inv),
+				ClientEmail:   inv.Client.Email,
+			})
+		})
+
+		if webhookSecret != "" {
+			webhookHandler = payment.NewWebhookHandler(invoiceStore, webhookSecret)
+		}
+	}
+
+	handler := server.New(authStore, clientHandler, invoiceHandler, settingsHandler, webhookHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {

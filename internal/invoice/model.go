@@ -42,10 +42,20 @@ type Invoice struct {
 	DueDate   *time.Time
 	IssuedAt  time.Time
 	PaidAt    *time.Time
-	ViewToken string
-	LineItems []LineItem
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ViewToken              string
+	StripePaymentIntentID  *string
+	StripeChargeID         *string
+	AmountPaidCents        *int64
+	LineItems              []LineItem
+	CreatedAt              time.Time
+	UpdatedAt              time.Time
+}
+
+type MarkPaidParams struct {
+	InvoiceID       int64
+	StripeChargeID  string
+	AmountPaidCents int64
+	PaidAt          time.Time
 }
 
 func (inv *Invoice) Subtotal() float64 {

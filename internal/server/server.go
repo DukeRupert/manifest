@@ -6,10 +6,11 @@ import (
 	"fireflysoftware.dev/manifest/internal/auth"
 	"fireflysoftware.dev/manifest/internal/client"
 	"fireflysoftware.dev/manifest/internal/invoice"
+	"fireflysoftware.dev/manifest/internal/payment"
 	"fireflysoftware.dev/manifest/internal/settings"
 )
 
-func New(authStore *auth.SessionStore, clientHandler *client.Handler, invoiceHandler *invoice.Handler, settingsHandler *settings.Handler) http.Handler {
+func New(authStore *auth.SessionStore, clientHandler *client.Handler, invoiceHandler *invoice.Handler, settingsHandler *settings.Handler, webhookHandler *payment.WebhookHandler) http.Handler {
 	mux := http.NewServeMux()
 
 	// Static files
@@ -19,6 +20,10 @@ func New(authStore *auth.SessionStore, clientHandler *client.Handler, invoiceHan
 	mux.HandleFunc("GET /login", authStore.ShowLogin)
 	mux.HandleFunc("POST /login", authStore.HandleLogin)
 	mux.HandleFunc("GET /i/{token}", invoiceHandler.PublicView)
+	mux.HandleFunc("GET /i/{token}/confirmed", invoiceHandler.PaymentConfirmed)
+	if webhookHandler != nil {
+		mux.HandleFunc("POST /webhooks/stripe", webhookHandler.HandleStripeWebhook)
+	}
 
 	// Protected routes
 	protected := http.NewServeMux()

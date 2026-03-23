@@ -1,6 +1,7 @@
 package invoice
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -11,10 +12,15 @@ import (
 	"fireflysoftware.dev/manifest/internal/settings"
 )
 
+// PaymentCreator creates or retrieves a Stripe PaymentIntent client secret.
+// Returns empty string if Stripe is not configured.
+type PaymentCreator func(ctx context.Context, inv *Invoice) (clientSecret string, err error)
+
 type Handler struct {
-	store         *Store
-	clientStore   *clientpkg.Store
-	settingsStore *settings.Store
+	store          *Store
+	clientStore    *clientpkg.Store
+	settingsStore  *settings.Store
+	createPayment  PaymentCreator
 }
 
 func NewHandler(store *Store, clientStore *clientpkg.Store, settingsStore *settings.Store) *Handler {
@@ -23,6 +29,10 @@ func NewHandler(store *Store, clientStore *clientpkg.Store, settingsStore *setti
 		clientStore:   clientStore,
 		settingsStore: settingsStore,
 	}
+}
+
+func (h *Handler) SetPaymentCreator(pc PaymentCreator) {
+	h.createPayment = pc
 }
 
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
@@ -363,13 +373,33 @@ func (h *Handler) PublicView(w http.ResponseWriter, r *http.Request) {
 		inv.Status = StatusViewed
 	}
 
+	// If already paid, render paid confirmation
+	if inv.Status == StatusPaid {
+		h.renderPaidPage(w, inv)
+		return
+	}
+
 	st, _ := h.settingsStore.Get(r.Context())
+
+	// Create or retrieve PaymentIntent if Stripe is configured
+	var clientSecret string
+	stripePK := ""
+	if st != nil {
+		stripePK = st.StripePK
+	}
+	if h.createPayment != nil && stripePK != "" {
+		clientSecret, err = h.createPayment(r.Context(), inv)
+		if err != nil {
+			// Log but don't block the page — show invoice without payment
+			fmt.Printf("payment setup error: %v\n", err)
+		}
+	}
 
 	// TODO: render templ template (public invoice page)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, `<!DOCTYPE html><html><head><title>Invoice %s</title></head><body>`, inv.Number)
 
-	if st != nil {
+	if st != nil && st.BusinessName != "" {
 		fmt.Fprintf(w, `<h2>%s</h2>`, st.BusinessName)
 		fmt.Fprintf(w, `<p>%s</p>`, st.BusinessAddress)
 	}
@@ -395,13 +425,69 @@ func (h *Handler) PublicView(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, `<p>Tax (%.2f%%): $%.2f</p>`, inv.TaxRate, inv.TaxAmount())
 	fmt.Fprintf(w, `<p><strong>Total: $%.2f</strong></p>`, inv.Total())
 
-	if inv.Status == StatusPaid {
-		fmt.Fprintf(w, `<p style="color:green"><strong>PAID</strong></p>`)
+	// Stripe Payment Element
+	if clientSecret != "" && stripePK != "" {
+		fmt.Fprintf(w, `
+<hr>
+<h3>Pay Now</h3>
+<div id="payment-element"></div>
+<button id="pay-button" style="margin-top:16px">Pay $%.2f</button>
+<div id="error-message" style="color:red;margin-top:8px"></div>
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+  const stripe = Stripe('%s');
+  const elements = stripe.elements({ clientSecret: '%s' });
+  const paymentElement = elements.create('payment');
+  paymentElement.mount('#payment-element');
+  document.getElementById('pay-button').addEventListener('click', async () => {
+    document.getElementById('pay-button').disabled = true;
+    const { error } = await stripe.confirmPayment({
+      elements,
+      confirmParams: { return_url: window.location.origin + '/i/%s/confirmed' },
+    });
+    if (error) {
+      document.getElementById('error-message').textContent = error.message;
+      document.getElementById('pay-button').disabled = false;
+    }
+  });
+</script>`, inv.Total(), stripePK, clientSecret, inv.ViewToken)
 	}
 
 	if inv.Notes != "" {
 		fmt.Fprintf(w, `<p>Notes: %s</p>`, inv.Notes)
 	}
 
+	fmt.Fprintf(w, `</body></html>`)
+}
+
+func (h *Handler) renderPaidPage(w http.ResponseWriter, inv *Invoice) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	fmt.Fprintf(w, `<!DOCTYPE html><html><head><title>Invoice %s — Paid</title></head><body>`, inv.Number)
+	fmt.Fprintf(w, `<h1>Invoice %s</h1>`, inv.Number)
+	fmt.Fprintf(w, `<p style="color:green;font-size:24px"><strong>PAID</strong></p>`)
+	if inv.PaidAt != nil {
+		fmt.Fprintf(w, `<p>Payment received: %s</p>`, inv.PaidAt.Format("January 2, 2006"))
+	}
+	fmt.Fprintf(w, `<p>Total: $%.2f</p>`, inv.Total())
+	fmt.Fprintf(w, `<p>Thank you for your payment!</p>`)
+	fmt.Fprintf(w, `</body></html>`)
+}
+
+// PaymentConfirmed renders the thank-you page after Stripe redirect.
+func (h *Handler) PaymentConfirmed(w http.ResponseWriter, r *http.Request) {
+	token := r.PathValue("token")
+
+	inv, err := h.store.GetByToken(r.Context(), token)
+	if err != nil || inv == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	fmt.Fprintf(w, `<!DOCTYPE html><html><head><title>Payment Received</title></head><body>`)
+	fmt.Fprintf(w, `<h1>Thank You!</h1>`)
+	fmt.Fprintf(w, `<p>Your payment for invoice <strong>%s</strong> has been received.</p>`, inv.Number)
+	fmt.Fprintf(w, `<p>Amount: <strong>$%.2f</strong></p>`, inv.Total())
+	fmt.Fprintf(w, `<p>You will receive a receipt via email.</p>`)
 	fmt.Fprintf(w, `</body></html>`)
 }
