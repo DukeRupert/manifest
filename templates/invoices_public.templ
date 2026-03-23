@@ -1,0 +1,216 @@
+package templates
+
+import "fmt"
+
+templ InvoicePublicView(p *PublicInvoiceView) {
+	@Layout("Invoice " + p.Invoice.Number) {
+		<div class="min-h-screen bg-space">
+			<div class="max-w-2xl mx-auto px-4 py-8 sm:py-12">
+				<!-- Business header -->
+				if p.BusinessName != "" {
+					<div class="text-center mb-8">
+						<h2 class="font-display text-xl text-bone">{ p.BusinessName }</h2>
+						if p.BusinessAddress != "" {
+							<p class="text-sm text-parchment-dark mt-1 whitespace-pre-line">{ p.BusinessAddress }</p>
+						}
+						if p.BusinessEmail != "" {
+							<p class="text-sm text-parchment-dark">{ p.BusinessEmail }</p>
+						}
+					</div>
+				}
+				<!-- Invoice card -->
+				<div class="card-vessel">
+					<!-- Invoice header -->
+					<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6 pb-6 border-b border-rust/25">
+						<div>
+							<h1 class="font-display text-2xl text-bone">{ p.Invoice.Number }</h1>
+							<span class={ StatusBadgeClass(p.Invoice.Status) + " mt-2" }>{ string(p.Invoice.Status) }</span>
+						</div>
+						<div class="text-right">
+							<p class="font-display text-3xl text-bone">{ p.Invoice.FormatTotal() }</p>
+							<p class="label-mono mt-1">Amount Due</p>
+						</div>
+					</div>
+					<!-- Bill to / dates -->
+					<div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+						<div>
+							<p class="label-mono mb-2">Bill To</p>
+							<p class="text-bone text-sm">{ p.Invoice.ClientName }</p>
+							if p.ClientAddress != "" {
+								<p class="text-parchment-dark text-sm whitespace-pre-line mt-1">{ p.ClientAddress }</p>
+							}
+						</div>
+						<div class="sm:text-right">
+							<div class="mb-3">
+								<p class="label-mono mb-1">Issued</p>
+								<p class="text-bone text-sm">{ p.Invoice.FormatIssuedAt() }</p>
+							</div>
+							if p.Invoice.DueDate != nil {
+								<div>
+									<p class="label-mono mb-1">Due</p>
+									<p class="text-bone text-sm">{ p.Invoice.FormatDueDateDisplay() }</p>
+								</div>
+							}
+						</div>
+					</div>
+					<!-- Line items -->
+					<div class="border-t border-rust/25 pt-4">
+						<!-- Desktop -->
+						<table class="w-full hidden sm:table">
+							<thead>
+								<tr class="border-b border-slate/50">
+									<th class="label-mono text-left py-2">Description</th>
+									<th class="label-mono text-right py-2">Qty</th>
+									<th class="label-mono text-right py-2">Price</th>
+									<th class="label-mono text-right py-2">Amount</th>
+								</tr>
+							</thead>
+							<tbody>
+								for _, li := range p.Invoice.LineItems {
+									<tr class="border-b border-slate/50">
+										<td class="py-3 text-bone text-sm">{ li.Description }</td>
+										<td class="py-3 text-parchment font-mono text-sm text-right">{ li.FormatQuantity() }</td>
+										<td class="py-3 text-parchment font-mono text-sm text-right">{ li.FormatUnitPrice() }</td>
+										<td class="py-3 text-bone font-mono text-sm text-right">{ li.FormatSubtotal() }</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+						<!-- Mobile -->
+						<div class="sm:hidden space-y-3">
+							for _, li := range p.Invoice.LineItems {
+								<div class="border-b border-slate/50 pb-3">
+									<p class="text-bone text-sm mb-1">{ li.Description }</p>
+									<div class="flex justify-between text-parchment-dark text-2xs font-mono">
+										<span>{ li.FormatQuantity() } x { li.FormatUnitPrice() }</span>
+										<span class="text-bone">{ li.FormatSubtotal() }</span>
+									</div>
+								</div>
+							}
+						</div>
+						<!-- Totals -->
+						<div class="mt-4 space-y-2 max-w-xs ml-auto">
+							<div class="flex justify-between">
+								<span class="label-mono">Subtotal</span>
+								<span class="font-mono text-sm text-parchment">{ p.Invoice.FormatSubtotal() }</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="label-mono">Tax ({ p.Invoice.FormatTaxRate() }%)</span>
+								<span class="font-mono text-sm text-parchment">{ p.Invoice.FormatTax() }</span>
+							</div>
+							<div class="flex justify-between pt-2 border-t border-rust/25">
+								<span class="font-mono text-xs uppercase tracking-widest text-bone">Total</span>
+								<span class="font-mono text-lg text-bone font-bold">{ p.Invoice.FormatTotal() }</span>
+							</div>
+						</div>
+					</div>
+					if p.Invoice.Notes != "" {
+						<div class="mt-6 pt-4 border-t border-rust/25">
+							<p class="label-mono mb-2">Notes</p>
+							<p class="text-sm text-parchment">{ p.Invoice.Notes }</p>
+						</div>
+					}
+				</div>
+				<!-- Stripe Payment -->
+				if p.ClientSecret != "" && p.StripePK != "" {
+					<div class="card-vessel mt-6">
+						<div class="section-label">Pay Now</div>
+						<div id="payment-element" class="mb-4"></div>
+						<button
+							id="pay-button"
+							class="btn btn-primary w-full justify-center"
+						>
+							Pay { p.Invoice.FormatTotal() }
+						</button>
+						<div id="error-message" class="alert alert-danger mt-4 hidden" role="alert"></div>
+						<script src="https://js.stripe.com/v3/"></script>
+						<script>
+							(function() {
+								var stripe = Stripe(document.currentScript.closest('.card-vessel').dataset.stripePk || '{ p.StripePK }');
+								var elements = stripe.elements({ clientSecret: '{ p.ClientSecret }' });
+								var paymentElement = elements.create('payment');
+								paymentElement.mount('#payment-element');
+								document.getElementById('pay-button').addEventListener('click', async function() {
+									this.disabled = true;
+									this.textContent = 'Processing...';
+									var result = await stripe.confirmPayment({
+										elements: elements,
+										confirmParams: { return_url: window.location.origin + '/i/{ p.Invoice.ViewToken }/confirmed' }
+									});
+									if (result.error) {
+										var errEl = document.getElementById('error-message');
+										errEl.textContent = result.error.message;
+										errEl.classList.remove('hidden');
+										this.disabled = false;
+										this.textContent = 'Pay { p.Invoice.FormatTotal() }';
+									}
+								});
+							})();
+						</script>
+					</div>
+				}
+				<!-- Footer -->
+				<p class="text-center mt-8 font-mono text-2xs text-parchment-dark tracking-cortex">
+					Powered by Manifest
+				</p>
+			</div>
+		</div>
+	}
+}
+
+templ InvoicePaid(inv *InvoiceView, businessName string) {
+	@Layout("Invoice " + inv.Number + " — Paid") {
+		<div class="min-h-screen bg-space flex items-center justify-center px-4">
+			<div class="w-full max-w-md text-center">
+				<div class="card-vessel py-12">
+					<div class="badge badge-guild text-sm !px-4 !py-2 mb-6">Paid</div>
+					<h1 class="font-display text-2xl text-bone mb-2">{ inv.Number }</h1>
+					<p class="font-display text-3xl text-bone mb-4">{ inv.FormatTotal() }</p>
+					if inv.PaidAt != nil {
+						<p class="text-sm text-parchment-dark">Payment received { inv.FormatPaidAt() }</p>
+					}
+				</div>
+				if businessName != "" {
+					<p class="mt-6 text-sm text-parchment-dark">{ businessName }</p>
+				}
+			</div>
+		</div>
+	}
+}
+
+templ InvoicePaymentConfirmed(inv *InvoiceView) {
+	@Layout("Payment Received") {
+		<div class="min-h-screen bg-space flex items-center justify-center px-4">
+			<div class="w-full max-w-md text-center">
+				<div class="card-vessel py-12">
+					<div class="alert alert-success justify-center mb-6">
+						<span>Payment received successfully</span>
+					</div>
+					<h1 class="font-display text-2xl text-bone mb-2">Thank You!</h1>
+					<p class="text-sm text-parchment mb-4">
+						Your payment for invoice <span class="font-mono text-bone">{ inv.Number }</span> has been received.
+					</p>
+					<p class="font-display text-3xl text-bone">{ inv.FormatTotal() }</p>
+					<p class="text-sm text-parchment-dark mt-4">You will receive a receipt via email.</p>
+				</div>
+			</div>
+		</div>
+	}
+}
+
+templ invoiceNotFound() {
+	@Layout("Invoice Not Found") {
+		<div class="min-h-screen bg-space flex items-center justify-center px-4">
+			<div class="w-full max-w-sm text-center">
+				<div class="card-vessel py-12">
+					<h1 class="font-display text-2xl text-bone mb-2">Invoice Not Found</h1>
+					<p class="text-sm text-parchment-dark">This invoice doesn't exist or has been voided.</p>
+				</div>
+			</div>
+		</div>
+	}
+}
+
+func formatTotal(total float64) string {
+	return fmt.Sprintf("$%.2f", total)
+}

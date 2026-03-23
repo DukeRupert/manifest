@@ -1,0 +1,134 @@
+package templates
+
+import "fmt"
+
+templ InvoicesList(invoices []InvoiceListItemView, activeFilter string) {
+	@AppLayout("Invoices", "/invoices") {
+		<div class="p-8">
+			<!-- Page header -->
+			<div class="flex items-center justify-between mb-6">
+				<div>
+					<h1 class="font-display text-2xl text-bone">Invoices</h1>
+					<p class="font-mono text-2xs text-parchment-dark tracking-wider uppercase mt-1">
+						{ fmt.Sprintf("%d", len(invoices)) } records
+					</p>
+				</div>
+				<a href="/invoices/new" class="btn btn-primary">
+					+ New Invoice
+				</a>
+			</div>
+			<!-- Status filter -->
+			<div class="flex flex-wrap gap-2 mb-6">
+				@statusFilterBtn("", "All", activeFilter)
+				@statusFilterBtn("draft", "Draft", activeFilter)
+				@statusFilterBtn("sent", "Sent", activeFilter)
+				@statusFilterBtn("viewed", "Viewed", activeFilter)
+				@statusFilterBtn("paid", "Paid", activeFilter)
+				@statusFilterBtn("void", "Void", activeFilter)
+			</div>
+			if len(invoices) == 0 {
+				<div class="card-vessel text-center py-12">
+					if activeFilter != "" {
+						<p class="font-display text-xl text-parchment mb-2">No { activeFilter } invoices</p>
+						<p class="text-sm text-parchment-dark mb-6">Try a different filter or create a new invoice.</p>
+					} else {
+						<p class="font-display text-xl text-parchment mb-2">No invoices in the ledger yet</p>
+						<p class="text-sm text-parchment-dark mb-6">Create your first invoice to get started.</p>
+					}
+					<a href="/invoices/new" class="btn btn-primary">
+						+ New Invoice
+					</a>
+				</div>
+			} else {
+				<!-- Desktop table -->
+				<div class="card-vessel !p-0 overflow-hidden hidden md:block">
+					<table class="w-full">
+						<thead>
+							<tr class="border-b border-rust/25">
+								<th class="label-mono text-left px-5 py-3">Number</th>
+								<th class="label-mono text-left px-5 py-3">Client</th>
+								<th class="label-mono text-left px-5 py-3">Status</th>
+								<th class="label-mono text-right px-5 py-3">Total</th>
+								<th class="label-mono text-left px-5 py-3">Issued</th>
+								<th class="label-mono text-left px-5 py-3">Due</th>
+							</tr>
+						</thead>
+						<tbody>
+							for _, inv := range invoices {
+								<tr class="border-b border-slate/50 hover:bg-rust/5 transition-colors">
+									<td class="px-5 py-3">
+										<a href={ templ.SafeURL(fmt.Sprintf("/invoices/%d", inv.ID)) } class="text-bone hover:text-rust-light transition-colors font-mono text-sm">
+											{ inv.Number }
+										</a>
+									</td>
+									<td class="px-5 py-3 text-parchment text-sm">
+										{ inv.ClientName }
+									</td>
+									<td class="px-5 py-3">
+										<span class={ StatusBadgeClass(inv.Status) }>{ string(inv.Status) }</span>
+									</td>
+									<td class="px-5 py-3 text-bone font-mono text-sm text-right">
+										{ inv.FormatTotal() }
+									</td>
+									<td class="px-5 py-3 text-parchment-dark text-sm">
+										{ inv.FormatIssuedAt() }
+									</td>
+									<td class="px-5 py-3 text-parchment-dark text-sm">
+										{ inv.FormatDueDate() }
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+				<!-- Mobile cards -->
+				<div class="md:hidden space-y-3">
+					for _, inv := range invoices {
+						<a href={ templ.SafeURL(fmt.Sprintf("/invoices/%d", inv.ID)) } class="card-vessel block hover:border-rust/50 transition-colors">
+							<div class="flex items-center justify-between mb-2">
+								<span class="font-mono text-sm text-bone">{ inv.Number }</span>
+								<span class={ StatusBadgeClass(inv.Status) }>{ string(inv.Status) }</span>
+							</div>
+							<div class="flex items-center justify-between">
+								<span class="text-sm text-parchment">{ inv.ClientName }</span>
+								<span class="font-mono text-sm text-bone">{ inv.FormatTotal() }</span>
+							</div>
+							<div class="text-2xs text-parchment-dark mt-2">
+								Issued { inv.FormatIssuedAt() }
+								if inv.DueDate != nil {
+									<span class="mx-1">&middot;</span>
+									Due { inv.FormatDueDate() }
+								}
+							</div>
+						</a>
+					}
+				</div>
+			}
+		</div>
+	}
+}
+
+templ statusFilterBtn(value string, label string, active string) {
+	if value == active {
+		<a
+			href={ templ.SafeURL(filterURL(value)) }
+			class="btn btn-primary text-2xs !py-1.5 !px-3"
+		>
+			{ label }
+		</a>
+	} else {
+		<a
+			href={ templ.SafeURL(filterURL(value)) }
+			class="btn btn-secondary text-2xs !py-1.5 !px-3"
+		>
+			{ label }
+		</a>
+	}
+}
+
+func filterURL(status string) string {
+	if status == "" {
+		return "/invoices"
+	}
+	return "/invoices?status=" + status
+}

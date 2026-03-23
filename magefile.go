@@ -12,8 +12,21 @@ import (
 
 var Default = Run
 
-// Build compiles the manifest binary.
+// Templ generates Go code from .templ files.
+func Templ() error {
+	fmt.Println("Generating templ...")
+	return sh.Run("templ", "generate")
+}
+
+// CSS compiles Tailwind CSS.
+func CSS() error {
+	fmt.Println("Building CSS...")
+	return sh.Run("./tailwindcss", "-c", "tailwind.config.js", "-i", "static/css/input.css", "-o", "static/css/app.css", "--minify")
+}
+
+// Build generates templ, compiles CSS, and builds the manifest binary.
 func Build() error {
+	mg.Deps(Templ, CSS)
 	fmt.Println("Building manifest...")
 	return sh.Run("go", "build", "-o", "manifest", "./cmd/manifest")
 }
