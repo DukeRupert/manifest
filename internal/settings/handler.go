@@ -1,9 +1,10 @@
 package settings
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
+
+	"fireflysoftware.dev/manifest/templates"
 )
 
 type Handler struct {
@@ -21,17 +22,15 @@ func (h *Handler) Show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: render templ template
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, `<h1>Settings</h1>
-<form method="POST" action="/settings">
-  <label>Business Name<br><input type="text" name="business_name" value="%s"></label><br>
-  <label>Business Address<br><textarea name="business_address">%s</textarea></label><br>
-  <label>Business Email<br><input type="email" name="business_email" value="%s"></label><br>
-  <label>Default Tax Rate (%%)<br><input type="number" step="0.01" name="default_tax_rate" value="%.2f"></label><br>
-  <label>Stripe Publishable Key<br><input type="text" name="stripe_pk" value="%s"></label><br>
-  <button type="submit">Save</button>
-</form>`, st.BusinessName, st.BusinessAddress, st.BusinessEmail, st.DefaultTaxRate, st.StripePK)
+	saved := r.URL.Query().Get("saved") == "1"
+	v := &templates.SettingsView{
+		BusinessName:    st.BusinessName,
+		BusinessAddress: st.BusinessAddress,
+		BusinessEmail:   st.BusinessEmail,
+		DefaultTaxRate:  st.DefaultTaxRate,
+		StripePK:        st.StripePK,
+	}
+	templates.SettingsShow(v, saved).Render(r.Context(), w)
 }
 
 func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
@@ -55,5 +54,5 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/settings", http.StatusSeeOther)
+	http.Redirect(w, r, "/settings?saved=1", http.StatusSeeOther)
 }

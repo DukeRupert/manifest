@@ -1,0 +1,89 @@
+package templates
+
+import "fmt"
+
+templ SettingsShow(s *SettingsView, saved bool) {
+	@AppLayout("Settings", "/settings") {
+		<div class="p-8">
+			<h1 class="font-display text-2xl text-bone mb-8">Settings</h1>
+			if saved {
+				<div class="alert alert-success mb-6" role="status">
+					<span>Settings saved.</span>
+				</div>
+			}
+			<form method="POST" action="/settings" class="space-y-8 max-w-2xl">
+				<!-- Business info -->
+				<div class="card-vessel">
+					<div class="section-label">Business Information</div>
+					<div class="space-y-5">
+						<div>
+							<label for="business_name" class="label-mono block mb-2">Business Name</label>
+							<input
+								type="text"
+								id="business_name"
+								name="business_name"
+								class="input-cortex"
+								value={ s.BusinessName }
+								placeholder="Firefly Software"
+							/>
+						</div>
+						<div>
+							<label for="business_address" class="label-mono block mb-2">Business Address</label>
+							<textarea
+								id="business_address"
+								name="business_address"
+								rows="3"
+								class="input-cortex"
+								placeholder="123 Main St&#10;City, State 12345"
+							>{ s.BusinessAddress }</textarea>
+						</div>
+						<div>
+							<label for="business_email" class="label-mono block mb-2">Business Email</label>
+							<input
+								type="email"
+								id="business_email"
+								name="business_email"
+								class="input-cortex"
+								value={ s.BusinessEmail }
+								placeholder="hello@fireflysoftware.dev"
+							/>
+						</div>
+					</div>
+				</div>
+				<!-- Invoicing -->
+				<div class="card-vessel">
+					<div class="section-label">Invoicing</div>
+					<div>
+						<label for="default_tax_rate" class="label-mono block mb-2">Default Tax Rate (%)</label>
+						<input
+							type="number"
+							id="default_tax_rate"
+							name="default_tax_rate"
+							step="0.01"
+							class="input-cortex max-w-xs"
+							value={ fmt.Sprintf("%.2f", s.DefaultTaxRate) }
+						/>
+						<p class="text-2xs text-parchment-dark mt-2">Applied to new invoices. Can be overridden per invoice.</p>
+					</div>
+				</div>
+				<!-- Stripe -->
+				<div class="card-vessel">
+					<div class="section-label">Stripe Integration</div>
+					<div>
+						<label for="stripe_pk" class="label-mono block mb-2">Publishable Key</label>
+						<input
+							type="text"
+							id="stripe_pk"
+							name="stripe_pk"
+							class="input-cortex font-mono text-sm"
+							value={ s.StripePK }
+							placeholder="pk_live_..."
+						/>
+						<p class="text-2xs text-parchment-dark mt-2">Client-side key for the payment form. Secret key is set via environment variable.</p>
+					</div>
+				</div>
+				<button type="submit" class="btn btn-primary">Save Settings</button>
+			</form>
+		</div>
+	}
+}
