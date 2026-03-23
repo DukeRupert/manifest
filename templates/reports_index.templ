@@ -1,0 +1,51 @@
+package templates
+
+import "fmt"
+
+templ ReportsIndex(d *DashboardSummaryView) {
+	@AppLayout("Reports", "/reports") {
+		<div class="p-8">
+			<h1 class="font-display text-2xl text-bone mb-8">Reports</h1>
+			<!-- Summary cards -->
+			<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+				@summaryCard("This Month", "Revenue", d.FormatMonthRevenue(), "")
+				@summaryCard("Outstanding", "Accounts Receivable", d.FormatARTotal(), fmt.Sprintf("%d invoices", d.ARCount))
+				@summaryCard("Year to Date", "Revenue", d.FormatYTDRevenue(), "")
+				@summaryCard("Year to Date", "Expenses", d.FormatYTDExpenses(), "")
+				@summaryCard("Year to Date", "Net Profit", d.FormatYTDNet(), netIndicator(d.YTDNet))
+			</div>
+			<!-- Report links -->
+			<div class="section-label">Detailed Reports</div>
+			<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+				@reportLink("/reports/revenue", "Revenue Report", "Monthly breakdown of paid invoices")
+				@reportLink("/reports/ar", "Outstanding AR", "Unpaid invoices and aging")
+				@reportLink("/reports/pl", "Profit & Loss", "Revenue vs expenses by month")
+			</div>
+		</div>
+	}
+}
+
+templ summaryCard(label string, sublabel string, value string, detail string) {
+	<div class="card-vessel">
+		<p class="label-mono mb-1">{ label }</p>
+		<p class="font-mono text-2xs text-parchment-dark tracking-wider uppercase mb-3">{ sublabel }</p>
+		<p class="font-display text-3xl text-bone">{ value }</p>
+		if detail != "" {
+			<p class="text-2xs text-parchment-dark mt-1 font-mono tracking-wider">{ detail }</p>
+		}
+	</div>
+}
+
+templ reportLink(href string, title string, desc string) {
+	<a href={ templ.SafeURL(href) } class="card-vessel block hover:border-rust/50 transition-colors group">
+		<p class="text-bone font-body group-hover:text-rust-light transition-colors">{ title }</p>
+		<p class="text-2xs text-parchment-dark mt-1">{ desc }</p>
+	</a>
+}
+
+func netIndicator(net float64) string {
+	if net >= 0 {
+		return "positive"
+	}
+	return "negative"
+}

@@ -1,0 +1,96 @@
+package templates
+
+templ ReportsPL(data *PLReportView) {
+	@AppLayout("Profit & Loss", "/reports") {
+		<div class="p-8">
+			<div class="mb-6">
+				<a href="/reports" class="font-mono text-2xs text-parchment-dark tracking-wider uppercase hover:text-bone transition-colors">
+					&larr; Reports
+				</a>
+			</div>
+			<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+				<h1 class="font-display text-2xl text-bone">Profit &amp; Loss</h1>
+				<!-- Date range filter -->
+				<form method="GET" class="flex flex-wrap items-end gap-3">
+					<div>
+						<label for="from" class="label-mono block mb-2">From</label>
+						<input type="date" id="from" name="from" value={ data.FilterFrom } class="input-cortex"/>
+					</div>
+					<div>
+						<label for="to" class="label-mono block mb-2">To</label>
+						<input type="date" id="to" name="to" value={ data.FilterTo } class="input-cortex"/>
+					</div>
+					<button type="submit" class="btn btn-secondary">Filter</button>
+				</form>
+			</div>
+			<!-- Summary cards -->
+			<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+				<div class="card-vessel">
+					<p class="label-mono mb-2">Revenue</p>
+					<p class="font-display text-2xl text-bone">{ data.FormatTotalRevenue() }</p>
+				</div>
+				<div class="card-vessel">
+					<p class="label-mono mb-2">Expenses</p>
+					<p class="font-display text-2xl text-bone">{ data.FormatTotalExpense() }</p>
+				</div>
+				<div class="card-vessel">
+					<p class="label-mono mb-2">Net Profit</p>
+					if data.IsNetNegative() {
+						<p class="font-display text-2xl text-alliance">{ data.FormatTotalNet() }</p>
+					} else {
+						<p class="font-display text-2xl text-jade-light">{ data.FormatTotalNet() }</p>
+					}
+				</div>
+			</div>
+			if len(data.Rows) == 0 {
+				<div class="card-vessel text-center py-12">
+					<p class="font-display text-xl text-parchment mb-2">No data for this period</p>
+					<p class="text-sm text-parchment-dark">Adjust the date range or wait for revenue/expenses to come in.</p>
+				</div>
+			} else {
+				<div class="card-vessel !p-0 overflow-hidden">
+					<table class="w-full">
+						<thead>
+							<tr class="border-b border-rust/25">
+								<th class="label-mono text-left px-5 py-3">Month</th>
+								<th class="label-mono text-right px-5 py-3">Revenue</th>
+								<th class="label-mono text-right px-5 py-3">Expenses</th>
+								<th class="label-mono text-right px-5 py-3">Net</th>
+							</tr>
+						</thead>
+						<tbody>
+							for _, row := range data.Rows {
+								<tr class="border-b border-slate/50">
+									<td class="px-5 py-3 text-bone text-sm">{ row.Month }</td>
+									<td class="px-5 py-3 text-parchment font-mono text-sm text-right">{ row.FormatRevenue() }</td>
+									<td class="px-5 py-3 text-parchment font-mono text-sm text-right">{ row.FormatExpenses() }</td>
+									<td class="px-5 py-3 text-right font-mono text-sm">
+										if row.IsNegative() {
+											<span class="text-alliance font-bold">{ row.FormatNet() }</span>
+										} else {
+											<span class="text-jade-light">{ row.FormatNet() }</span>
+										}
+									</td>
+								</tr>
+							}
+						</tbody>
+						<tfoot>
+							<tr>
+								<td class="px-5 py-3 font-mono text-xs uppercase tracking-widest text-bone">Total</td>
+								<td class="px-5 py-3 text-right text-bone font-mono text-sm font-bold">{ data.FormatTotalRevenue() }</td>
+								<td class="px-5 py-3 text-right text-bone font-mono text-sm font-bold">{ data.FormatTotalExpense() }</td>
+								<td class="px-5 py-3 text-right font-mono text-base font-bold">
+									if data.IsNetNegative() {
+										<span class="text-alliance">{ data.FormatTotalNet() }</span>
+									} else {
+										<span class="text-jade-light">{ data.FormatTotalNet() }</span>
+									}
+								</td>
+							</tr>
+						</tfoot>
+					</table>
+				</div>
+			}
+		</div>
+	}
+}
