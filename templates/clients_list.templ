@@ -1,0 +1,66 @@
+package templates
+
+import "fmt"
+
+templ ClientsList(clients []ClientView) {
+	@AppLayout("Clients", "/clients") {
+		<div class="p-8">
+			<!-- Page header -->
+			<div class="flex items-center justify-between mb-8">
+				<div>
+					<h1 class="font-display text-2xl text-bone">Clients</h1>
+					<p class="font-mono text-2xs text-parchment-dark tracking-wider uppercase mt-1">
+						{ fmt.Sprintf("%d", len(clients)) } on the manifest
+					</p>
+				</div>
+				<a href="/clients/new" class="btn btn-primary">
+					+ New Client
+				</a>
+			</div>
+			if len(clients) == 0 {
+				<!-- Empty state -->
+				<div class="card-vessel text-center py-12">
+					<p class="font-display text-xl text-parchment mb-2">No crew on the manifest yet</p>
+					<p class="text-sm text-parchment-dark mb-6">Add your first client to get started.</p>
+					<a href="/clients/new" class="btn btn-primary">
+						+ New Client
+					</a>
+				</div>
+			} else {
+				<!-- Client table -->
+				<div class="card-vessel !p-0 overflow-hidden">
+					<table class="w-full">
+						<thead>
+							<tr class="border-b border-rust/25">
+								<th class="label-mono text-left px-5 py-3">Name</th>
+								<th class="label-mono text-left px-5 py-3">Slug</th>
+								<th class="label-mono text-left px-5 py-3">Email</th>
+								<th class="label-mono text-left px-5 py-3">Phone</th>
+							</tr>
+						</thead>
+						<tbody>
+							for _, c := range clients {
+								<tr class="border-b border-slate/50 hover:bg-rust/5 transition-colors">
+									<td class="px-5 py-3">
+										<a href={ templ.SafeURL(fmt.Sprintf("/clients/%d", c.ID)) } class="text-bone hover:text-rust-light transition-colors font-body">
+											{ c.Name }
+										</a>
+									</td>
+									<td class="px-5 py-3">
+										<span class="badge badge-crew">{ c.Slug }</span>
+									</td>
+									<td class="px-5 py-3 text-parchment text-sm">
+										{ c.Email }
+									</td>
+									<td class="px-5 py-3 text-parchment text-sm">
+										{ c.Phone }
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			}
+		</div>
+	}
+}

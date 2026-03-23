@@ -4,22 +4,16 @@ import (
 	"net/http"
 	"time"
 
+	"fireflysoftware.dev/manifest/templates"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func (s *SessionStore) ShowLogin(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	// TODO: render templ login template
-	w.Write([]byte(`<!DOCTYPE html>
-<html><head><title>Login — Manifest</title></head>
-<body>
-<h1>Login</h1>
-<form method="POST" action="/login">
-  <label>Email<br><input type="email" name="email" required></label><br>
-  <label>Password<br><input type="password" name="password" required></label><br>
-  <button type="submit">Log In</button>
-</form>
-</body></html>`))
+	errorMsg := ""
+	if r.URL.Query().Get("error") == "invalid" {
+		errorMsg = "Invalid email or password. Try again, Captain."
+	}
+	templates.Login(errorMsg).Render(r.Context(), w)
 }
 
 func (s *SessionStore) HandleLogin(w http.ResponseWriter, r *http.Request) {

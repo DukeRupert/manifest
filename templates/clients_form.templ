@@ -1,0 +1,135 @@
+package templates
+
+import "fmt"
+
+templ ClientsNew() {
+	@AppLayout("New Client", "/clients") {
+		<div class="p-8">
+			<div class="mb-6">
+				<a href="/clients" class="font-mono text-2xs text-parchment-dark tracking-wider uppercase hover:text-bone transition-colors">
+					&larr; Clients
+				</a>
+			</div>
+			<h1 class="font-display text-2xl text-bone mb-8">New Client</h1>
+			<div class="card-vessel max-w-xl">
+				<div class="section-label">Client Details</div>
+				@clientForm(nil, "/clients")
+			</div>
+		</div>
+	}
+}
+
+templ ClientsEdit(c *ClientView) {
+	@AppLayout("Edit "+c.Name, "/clients") {
+		<div class="p-8">
+			<div class="mb-6">
+				<a href={ templ.SafeURL(fmt.Sprintf("/clients/%d", c.ID)) } class="font-mono text-2xs text-parchment-dark tracking-wider uppercase hover:text-bone transition-colors">
+					&larr; { c.Name }
+				</a>
+			</div>
+			<h1 class="font-display text-2xl text-bone mb-8">Edit { c.Name }</h1>
+			<div class="card-vessel max-w-xl">
+				<div class="section-label">Client Details</div>
+				@clientForm(c, fmt.Sprintf("/clients/%d", c.ID))
+			</div>
+		</div>
+	}
+}
+
+templ clientForm(c *ClientView, action string) {
+	<form method="POST" action={ templ.SafeURL(action) } class="space-y-5">
+		<div>
+			<label for="name" class="label-mono block mb-2">Name</label>
+			<input
+				type="text"
+				id="name"
+				name="name"
+				required
+				class="input-cortex"
+				if c != nil {
+					value={ c.Name }
+				}
+			/>
+		</div>
+		if c == nil {
+			<div>
+				<label for="slug" class="label-mono block mb-2">Slug (optional)</label>
+				<input
+					type="text"
+					id="slug"
+					name="slug"
+					class="input-cortex"
+					placeholder="Auto-generated from name"
+				/>
+			</div>
+		}
+		<div>
+			<label for="email" class="label-mono block mb-2">Email</label>
+			<input
+				type="email"
+				id="email"
+				name="email"
+				class="input-cortex"
+				if c != nil {
+					value={ c.Email }
+				}
+			/>
+		</div>
+		<div>
+			<label for="phone" class="label-mono block mb-2">Phone</label>
+			<input
+				type="text"
+				id="phone"
+				name="phone"
+				class="input-cortex"
+				if c != nil {
+					value={ c.Phone }
+				}
+			/>
+		</div>
+		<div>
+			<label for="billing_address" class="label-mono block mb-2">Billing Address</label>
+			<textarea
+				id="billing_address"
+				name="billing_address"
+				rows="3"
+				class="input-cortex"
+			>
+				if c != nil {
+					{ c.BillingAddress }
+				}
+			</textarea>
+		</div>
+		<div>
+			<label for="notes" class="label-mono block mb-2">Notes</label>
+			<textarea
+				id="notes"
+				name="notes"
+				rows="3"
+				class="input-cortex"
+			>
+				if c != nil {
+					{ c.Notes }
+				}
+			</textarea>
+		</div>
+		<div class="flex gap-3 pt-2">
+			<button type="submit" class="btn btn-primary">
+				if c != nil {
+					Save Changes
+				} else {
+					Create Client
+				}
+			</button>
+			if c != nil {
+				<a href={ templ.SafeURL(fmt.Sprintf("/clients/%d", c.ID)) } class="btn btn-secondary">
+					Cancel
+				</a>
+			} else {
+				<a href="/clients" class="btn btn-secondary">
+					Cancel
+				</a>
+			}
+		</div>
+	</form>
+}

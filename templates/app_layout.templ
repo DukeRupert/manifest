@@ -1,0 +1,57 @@
+package templates
+
+templ AppLayout(title string, activePath string) {
+	@Layout(title) {
+		<div class="flex min-h-screen">
+			<!-- Sidebar -->
+			<nav class="w-56 shrink-0 bg-slate-deep border-r border-rust/25 flex flex-col">
+				<!-- Brand -->
+				<div class="px-5 py-6 border-b border-rust/25">
+					<a href="/" class="block">
+						<span class="font-display text-xl text-bone tracking-wide">Manifest</span>
+					</a>
+				</div>
+				<!-- Nav links -->
+				<div class="flex-1 py-4">
+					@navItem("/clients", "Clients", activePath)
+					@navItem("/invoices", "Invoices", activePath)
+					@navItem("/expenses", "Expenses", activePath)
+					@navItem("/reports", "Reports", activePath)
+					@navItem("/settings", "Settings", activePath)
+				</div>
+				<!-- Logout -->
+				<div class="px-3 py-4 border-t border-rust/25">
+					<form method="POST" action="/logout">
+						<button type="submit" class="w-full text-left px-3 py-2 font-mono text-2xs uppercase tracking-widest text-parchment-dark hover:text-bone transition-colors">
+							Log Out
+						</button>
+					</form>
+				</div>
+			</nav>
+			<!-- Main content -->
+			<main class="flex-1 min-w-0">
+				{ children... }
+			</main>
+		</div>
+	}
+}
+
+templ navItem(href string, label string, activePath string) {
+	<a
+		href={ templ.SafeURL(href) }
+		if isActive(href, activePath) {
+			class="nav-link nav-link-active"
+		} else {
+			class="nav-link"
+		}
+	>
+		{ label }
+	</a>
+}
+
+func isActive(href, activePath string) bool {
+	if href == "/" {
+		return activePath == "/"
+	}
+	return len(activePath) >= len(href) && activePath[:len(href)] == href
+}

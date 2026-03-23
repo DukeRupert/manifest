@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+
+	"fireflysoftware.dev/manifest/templates"
 )
 
 type Handler struct {
@@ -20,29 +22,28 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to list clients", http.StatusInternalServerError)
 		return
 	}
-
-	// TODO: render templ template
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, "<h1>Clients (%d)</h1>", len(clients))
-	for _, c := range clients {
-		fmt.Fprintf(w, "<div><a href=\"/clients/%d\">%s</a> [%s]</div>", c.ID, c.Name, c.Slug)
+	views := make([]templates.ClientView, len(clients))
+	for i, c := range clients {
+		views[i] = toView(&c)
 	}
-	fmt.Fprintf(w, `<a href="/clients/new">New Client</a>`)
+	templates.ClientsList(views).Render(r.Context(), w)
 }
 
 func (h *Handler) New(w http.ResponseWriter, r *http.Request) {
-	// TODO: render templ template
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Write([]byte(`<h1>New Client</h1>
-<form method="POST" action="/clients">
-  <label>Name<br><input type="text" name="name" required></label><br>
-  <label>Slug (optional)<br><input type="text" name="slug"></label><br>
-  <label>Email<br><input type="email" name="email"></label><br>
-  <label>Phone<br><input type="text" name="phone"></label><br>
-  <label>Billing Address<br><textarea name="billing_address"></textarea></label><br>
-  <label>Notes<br><textarea name="notes"></textarea></label><br>
-  <button type="submit">Create</button>
-</form>`))
+	templates.ClientsNew().Render(r.Context(), w)
+}
+
+func toView(c *Client) templates.ClientView {
+	return templates.ClientView{
+		ID:             c.ID,
+		Name:           c.Name,
+		Slug:           c.Slug,
+		Email:          c.Email,
+		Phone:          c.Phone,
+		BillingAddress: c.BillingAddress,
+		Notes:          c.Notes,
+		ArchivedAt:     c.ArchivedAt,
+	}
 }
 
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
@@ -86,12 +87,8 @@ func (h *Handler) Show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: render templ template
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, "<h1>%s</h1><p>Slug: %s</p><p>Email: %s</p><p>Phone: %s</p>",
-		c.Name, c.Slug, c.Email, c.Phone)
-	fmt.Fprintf(w, `<a href="/clients/%d/edit">Edit</a>`, c.ID)
-	fmt.Fprintf(w, `<form method="POST" action="/clients/%d/archive"><button type="submit">Archive</button></form>`, c.ID)
+	v := toView(c)
+	templates.ClientsShow(&v).Render(r.Context(), w)
 }
 
 func (h *Handler) Edit(w http.ResponseWriter, r *http.Request) {
@@ -107,17 +104,8 @@ func (h *Handler) Edit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: render templ template
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, `<h1>Edit %s</h1>
-<form method="POST" action="/clients/%d">
-  <label>Name<br><input type="text" name="name" value="%s" required></label><br>
-  <label>Email<br><input type="email" name="email" value="%s"></label><br>
-  <label>Phone<br><input type="text" name="phone" value="%s"></label><br>
-  <label>Billing Address<br><textarea name="billing_address">%s</textarea></label><br>
-  <label>Notes<br><textarea name="notes">%s</textarea></label><br>
-  <button type="submit">Save</button>
-</form>`, c.Name, c.ID, c.Name, c.Email, c.Phone, c.BillingAddress, c.Notes)
+	v := toView(c)
+	templates.ClientsEdit(&v).Render(r.Context(), w)
 }
 
 func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {

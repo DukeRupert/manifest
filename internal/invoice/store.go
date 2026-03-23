@@ -165,8 +165,9 @@ func (s *Store) getLineItems(ctx context.Context, invoiceID int64) ([]LineItem, 
 }
 
 // List returns all invoices with computed totals for the list view.
-func (s *Store) List(ctx context.Context) ([]InvoiceListItem, error) {
-	rows, err := s.pool.Query(ctx, `
+// If status is non-empty, filters to that status only.
+func (s *Store) List(ctx context.Context, status Status) ([]InvoiceListItem, error) {
+	query := `
 		SELECT
 			i.id,
 			i.number,
@@ -179,10 +180,19 @@ func (s *Store) List(ctx context.Context) ([]InvoiceListItem, error) {
 			COALESCE(SUM(li.quantity * li.unit_price), 0) * (1 + i.tax_rate / 100) AS total
 		FROM invoices i
 		JOIN clients c ON c.id = i.client_id
-		LEFT JOIN invoice_line_items li ON li.invoice_id = i.id
+		LEFT JOIN invoice_line_items li ON li.invoice_id = i.id`
+
+	var args []any
+	if status != "" {
+		query += ` WHERE i.status = $1`
+		args = append(args, status)
+	}
+
+	query += `
 		GROUP BY i.id, c.name
-		ORDER BY i.created_at DESC
-	`)
+		ORDER BY i.created_at DESC`
+
+	rows, err := s.pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

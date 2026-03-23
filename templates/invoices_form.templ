@@ -1,0 +1,212 @@
+package templates
+
+import "fmt"
+
+templ InvoicesNew(clients []ClientView, defaultTaxRate float64) {
+	@AppLayout("New Invoice", "/invoices") {
+		<div class="p-8">
+			<div class="mb-6">
+				<a href="/invoices" class="font-mono text-2xs text-parchment-dark tracking-wider uppercase hover:text-bone transition-colors">
+					&larr; Invoices
+				</a>
+			</div>
+			<h1 class="font-display text-2xl text-bone mb-8">New Invoice</h1>
+			<div class="max-w-3xl" x-data={ fmt.Sprintf(`invoiceForm(%s)`, lineItemsJSON(nil, defaultTaxRate)) }>
+				<form method="POST" action="/invoices" class="space-y-8">
+					<!-- Invoice details -->
+					<div class="card-vessel">
+						<div class="section-label">Invoice Details</div>
+						<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+							<div>
+								<label for="client_id" class="label-mono block mb-2">Client</label>
+								<select id="client_id" name="client_id" required class="input-cortex">
+									<option value="">Select client...</option>
+									for _, c := range clients {
+										<option value={ fmt.Sprintf("%d", c.ID) }>{ c.Name }</option>
+									}
+								</select>
+							</div>
+							<div>
+								<label for="tax_rate" class="label-mono block mb-2">Tax Rate (%)</label>
+								<input
+									type="number"
+									id="tax_rate"
+									name="tax_rate"
+									step="0.01"
+									class="input-cortex"
+									x-model.number="taxRate"
+									value={ fmt.Sprintf("%.2f", defaultTaxRate) }
+								/>
+							</div>
+							<div>
+								<label for="due_date" class="label-mono block mb-2">Due Date</label>
+								<input type="date" id="due_date" name="due_date" class="input-cortex"/>
+							</div>
+							<div class="sm:col-span-2">
+								<label for="notes" class="label-mono block mb-2">Notes</label>
+								<textarea id="notes" name="notes" rows="2" class="input-cortex"></textarea>
+							</div>
+						</div>
+					</div>
+					<!-- Line items -->
+					<div class="card-vessel">
+						<div class="section-label">Line Items</div>
+						@lineItemsEditor()
+					</div>
+					<!-- Submit -->
+					<div class="flex gap-3">
+						<button type="submit" class="btn btn-primary">Create Invoice</button>
+						<a href="/invoices" class="btn btn-secondary">Cancel</a>
+					</div>
+				</form>
+			</div>
+		</div>
+	}
+}
+
+templ InvoicesEdit(inv *InvoiceView, clients []ClientView) {
+	@AppLayout("Edit "+inv.Number, "/invoices") {
+		<div class="p-8">
+			<div class="mb-6">
+				<a href={ templ.SafeURL(fmt.Sprintf("/invoices/%d", inv.ID)) } class="font-mono text-2xs text-parchment-dark tracking-wider uppercase hover:text-bone transition-colors">
+					&larr; { inv.Number }
+				</a>
+			</div>
+			<h1 class="font-display text-2xl text-bone mb-8">Edit { inv.Number }</h1>
+			<div class="max-w-3xl" x-data={ fmt.Sprintf(`invoiceForm(%s)`, lineItemsJSON(inv, inv.TaxRate)) }>
+				<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/invoices/%d", inv.ID)) } class="space-y-8">
+					<div class="card-vessel">
+						<div class="section-label">Invoice Details</div>
+						<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+							<div>
+								<label class="label-mono block mb-2">Client</label>
+								<p class="text-bone text-sm py-2">{ inv.ClientName }</p>
+							</div>
+							<div>
+								<label for="tax_rate" class="label-mono block mb-2">Tax Rate (%)</label>
+								<input
+									type="number"
+									id="tax_rate"
+									name="tax_rate"
+									step="0.01"
+									class="input-cortex"
+									x-model.number="taxRate"
+									value={ inv.FormatTaxRate() }
+								/>
+							</div>
+							<div>
+								<label for="due_date" class="label-mono block mb-2">Due Date</label>
+								<input
+									type="date"
+									id="due_date"
+									name="due_date"
+									class="input-cortex"
+									value={ inv.FormatDueDate() }
+								/>
+							</div>
+							<div class="sm:col-span-2">
+								<label for="notes" class="label-mono block mb-2">Notes</label>
+								<textarea id="notes" name="notes" rows="2" class="input-cortex">{ inv.Notes }</textarea>
+							</div>
+						</div>
+					</div>
+					<div class="card-vessel">
+						<div class="section-label">Line Items</div>
+						@lineItemsEditor()
+					</div>
+					<div class="flex gap-3">
+						<button type="submit" class="btn btn-primary">Save Changes</button>
+						<a href={ templ.SafeURL(fmt.Sprintf("/invoices/%d", inv.ID)) } class="btn btn-secondary">Cancel</a>
+					</div>
+				</form>
+			</div>
+		</div>
+	}
+}
+
+templ lineItemsEditor() {
+	<div class="space-y-3">
+		<!-- Desktop header -->
+		<div class="hidden sm:grid sm:grid-cols-12 gap-3 mb-1">
+			<div class="col-span-5"><span class="label-mono">Description</span></div>
+			<div class="col-span-2"><span class="label-mono">Qty</span></div>
+			<div class="col-span-2"><span class="label-mono">Unit Price</span></div>
+			<div class="col-span-2 text-right"><span class="label-mono">Amount</span></div>
+			<div class="col-span-1"></div>
+		</div>
+		<!-- Line item rows -->
+		<template x-for="(item, index) in items" :key="index">
+			<div class="sm:grid sm:grid-cols-12 gap-3 items-start">
+				<div class="col-span-5 mb-2 sm:mb-0">
+					<label class="label-mono block mb-1 sm:hidden">Description</label>
+					<input
+						type="text"
+						x-bind:name="'li_desc[]'"
+						x-model="item.desc"
+						placeholder="Description"
+						required
+						class="input-cortex"
+					/>
+				</div>
+				<div class="col-span-2 mb-2 sm:mb-0">
+					<label class="label-mono block mb-1 sm:hidden">Qty</label>
+					<input
+						type="number"
+						x-bind:name="'li_qty[]'"
+						x-model.number="item.qty"
+						step="0.01"
+						min="0.01"
+						class="input-cortex text-right"
+					/>
+				</div>
+				<div class="col-span-2 mb-2 sm:mb-0">
+					<label class="label-mono block mb-1 sm:hidden">Unit Price</label>
+					<input
+						type="number"
+						x-bind:name="'li_price[]'"
+						x-model.number="item.price"
+						step="0.01"
+						placeholder="0.00"
+						required
+						class="input-cortex text-right"
+					/>
+				</div>
+				<div class="col-span-2 flex items-center justify-end sm:h-[42px] mb-2 sm:mb-0">
+					<span class="font-mono text-sm text-bone" x-text="'$' + (item.qty * item.price || 0).toFixed(2)"></span>
+				</div>
+				<div class="col-span-1 flex items-center justify-end sm:h-[42px]">
+					<button
+						type="button"
+						@click="removeItem(index)"
+						x-show="items.length > 1"
+						class="text-parchment-dark hover:text-alliance transition-colors font-mono text-sm"
+						title="Remove line item"
+					>
+						&times;
+					</button>
+				</div>
+				<!-- Mobile divider -->
+				<div class="col-span-12 sm:hidden border-b border-slate/50 mt-2 mb-1"></div>
+			</div>
+		</template>
+		<!-- Add line item button -->
+		<button type="button" @click="addItem()" class="btn btn-ghost text-2xs mt-2">
+			+ Add Line Item
+		</button>
+	</div>
+	<!-- Running totals -->
+	<div class="border-t border-rust/25 mt-6 pt-4 space-y-2">
+		<div class="flex justify-between items-center">
+			<span class="label-mono">Subtotal</span>
+			<span class="font-mono text-sm text-parchment" x-text="'$' + subtotal().toFixed(2)"></span>
+		</div>
+		<div class="flex justify-between items-center">
+			<span class="label-mono">Tax (<span x-text="taxRate"></span>%)</span>
+			<span class="font-mono text-sm text-parchment" x-text="'$' + taxAmount().toFixed(2)"></span>
+		</div>
+		<div class="flex justify-between items-center pt-2 border-t border-rust/25">
+			<span class="font-mono text-xs uppercase tracking-widest text-bone">Total</span>
+			<span class="font-mono text-lg text-bone font-bold" x-text="'$' + total().toFixed(2)"></span>
+		</div>
+	</div>
+}

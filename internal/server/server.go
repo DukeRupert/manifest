@@ -31,11 +31,9 @@ func New(authStore *auth.SessionStore, clientHandler *client.Handler, invoiceHan
 	protected := http.NewServeMux()
 	protected.HandleFunc("POST /logout", authStore.HandleLogout)
 
-	// Dashboard stub
+	// Redirect root to clients (dashboard built last)
 	protected.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Write([]byte(`<h1>Manifest</h1><p>Dashboard coming soon.</p>
-<nav><a href="/clients">Clients</a> | <a href="/invoices">Invoices</a> | <a href="/expenses">Expenses</a> | <a href="/reports">Reports</a> | <a href="/settings">Settings</a></nav>`))
+		http.Redirect(w, r, "/clients", http.StatusSeeOther)
 	})
 
 	// Clients
