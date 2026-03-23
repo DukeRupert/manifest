@@ -5,12 +5,13 @@ import (
 
 	"fireflysoftware.dev/manifest/internal/auth"
 	"fireflysoftware.dev/manifest/internal/client"
+	"fireflysoftware.dev/manifest/internal/expense"
 	"fireflysoftware.dev/manifest/internal/invoice"
 	"fireflysoftware.dev/manifest/internal/payment"
 	"fireflysoftware.dev/manifest/internal/settings"
 )
 
-func New(authStore *auth.SessionStore, clientHandler *client.Handler, invoiceHandler *invoice.Handler, settingsHandler *settings.Handler, webhookHandler *payment.WebhookHandler) http.Handler {
+func New(authStore *auth.SessionStore, clientHandler *client.Handler, invoiceHandler *invoice.Handler, settingsHandler *settings.Handler, webhookHandler *payment.WebhookHandler, expenseHandler *expense.Handler) http.Handler {
 	mux := http.NewServeMux()
 
 	// Static files
@@ -33,7 +34,7 @@ func New(authStore *auth.SessionStore, clientHandler *client.Handler, invoiceHan
 	protected.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Write([]byte(`<h1>Manifest</h1><p>Dashboard coming soon.</p>
-<nav><a href="/clients">Clients</a> | <a href="/invoices">Invoices</a> | <a href="/settings">Settings</a></nav>`))
+<nav><a href="/clients">Clients</a> | <a href="/invoices">Invoices</a> | <a href="/expenses">Expenses</a> | <a href="/settings">Settings</a></nav>`))
 	})
 
 	// Clients
@@ -58,6 +59,21 @@ func New(authStore *auth.SessionStore, clientHandler *client.Handler, invoiceHan
 	protected.HandleFunc("POST /invoices/{id}", invoiceHandler.Update)
 	protected.HandleFunc("POST /invoices/{id}/send", invoiceHandler.Send)
 	protected.HandleFunc("POST /invoices/{id}/void", invoiceHandler.Void)
+
+	// Expense Categories
+	protected.HandleFunc("GET /expenses/categories", expenseHandler.CategoryList)
+	protected.HandleFunc("GET /expenses/categories/new", expenseHandler.CategoryNew)
+	protected.HandleFunc("POST /expenses/categories", expenseHandler.CategoryCreate)
+	protected.HandleFunc("POST /expenses/categories/{id}", expenseHandler.CategoryUpdate)
+	protected.HandleFunc("POST /expenses/categories/delete/{id}", expenseHandler.CategoryDelete)
+
+	// Expenses
+	protected.HandleFunc("GET /expenses", expenseHandler.List)
+	protected.HandleFunc("GET /expenses/new", expenseHandler.New)
+	protected.HandleFunc("POST /expenses", expenseHandler.Create)
+	protected.HandleFunc("GET /expenses/{id}/edit", expenseHandler.Edit)
+	protected.HandleFunc("POST /expenses/{id}", expenseHandler.Update)
+	protected.HandleFunc("POST /expenses/delete/{id}", expenseHandler.Delete)
 
 	mux.Handle("/", authStore.Middleware(protected))
 

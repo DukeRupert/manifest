@@ -10,6 +10,7 @@ import (
 	"fireflysoftware.dev/manifest/internal/auth"
 	"fireflysoftware.dev/manifest/internal/client"
 	"fireflysoftware.dev/manifest/internal/db"
+	"fireflysoftware.dev/manifest/internal/expense"
 	"fireflysoftware.dev/manifest/internal/invoice"
 	"fireflysoftware.dev/manifest/internal/payment"
 	"fireflysoftware.dev/manifest/internal/server"
@@ -63,7 +64,10 @@ func runServer() {
 		}
 	}
 
-	handler := server.New(authStore, clientHandler, invoiceHandler, settingsHandler, webhookHandler)
+	expenseStore := expense.NewStore(pool)
+	expenseHandler := expense.NewHandler(expenseStore)
+
+	handler := server.New(authStore, clientHandler, invoiceHandler, settingsHandler, webhookHandler, expenseHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {
