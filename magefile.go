@@ -18,9 +18,10 @@ func Build() error {
 	return sh.Run("go", "build", "-o", "manifest", "./cmd/manifest")
 }
 
-// Run builds and starts the server.
+// Run builds and starts the server using the local Docker DB.
 func Run() error {
 	mg.Deps(Build)
+	setLocalDBEnv()
 	fmt.Println("Starting manifest...")
 	return sh.RunV("./manifest")
 }
@@ -28,7 +29,15 @@ func Run() error {
 // Seed runs the interactive admin user seed command.
 func Seed() error {
 	mg.Deps(Build)
+	setLocalDBEnv()
 	return sh.RunV("./manifest", "seed")
+}
+
+// setLocalDBEnv sets DB_PORT to the exposed Docker port if not already set.
+func setLocalDBEnv() {
+	if os.Getenv("DB_PORT") == "" {
+		os.Setenv("DB_PORT", "5433")
+	}
 }
 
 // Migrate runs all pending goose migrations.
