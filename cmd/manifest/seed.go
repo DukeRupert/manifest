@@ -56,5 +56,5 @@ func runSeed() {
 		log.Fatalf("insert user: %v", err)
 	}
 
-	fmt.Println("Admin user created.")
+	fmt.Println("✓ Admin user created.")
 }
