@@ -69,7 +69,7 @@ func ExpensesList(data ExpenseListData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " total</p></div><div class=\"flex gap-3\"><a href=\"/expenses/new\" class=\"btn btn-primary\">+ New Expense</a> <a href=\"/expenses/categories\" class=\"btn btn-secondary\">Categories</a></div></div><!-- Filters --><form method=\"GET\" action=\"/expenses\" class=\"card-vessel mb-6\"><div class=\"section-label\">Filters</div><div class=\"grid grid-cols-1 sm:grid-cols-4 gap-4 items-end\"><div><label for=\"from\" class=\"label-mono block mb-2\">From</label> <input type=\"date\" id=\"from\" name=\"from\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " total</p></div><div class=\"flex gap-3\"><a href=\"/expenses/new\" class=\"btn btn-primary\">+ New Expense</a> <a href=\"/categories\" class=\"btn btn-secondary\">Categories</a></div></div><!-- Filters --><form method=\"GET\" action=\"/expenses\" class=\"card-vessel mb-6\"><div class=\"section-label\">Filters</div><div class=\"grid grid-cols-1 sm:grid-cols-4 gap-4 items-end\"><div><label for=\"from\" class=\"label-mono block mb-2\">From</label> <input type=\"date\" id=\"from\" name=\"from\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -17,13 +17,13 @@ templ ExpensesCategoryList(categories []CategoryView) {
 						{ fmt.Sprintf("%d", len(categories)) } categories
 					</p>
 				</div>
-				<a href="/expenses/categories/new" class="btn btn-primary">+ New Category</a>
+				<a href="/categories/new" class="btn btn-primary">+ New Category</a>
 			</div>
 			if len(categories) == 0 {
 				<div class="card-vessel text-center py-12">
 					<p class="font-display text-xl text-parchment mb-2">No categories yet</p>
 					<p class="text-sm text-parchment-dark mb-6">Add a category to organize your expenses.</p>
-					<a href="/expenses/categories/new" class="btn btn-primary">+ New Category</a>
+					<a href="/categories/new" class="btn btn-primary">+ New Category</a>
 				</div>
 			} else {
 				<div class="card-vessel !p-0 overflow-hidden max-w-xl">
@@ -42,7 +42,7 @@ templ ExpensesCategoryList(categories []CategoryView) {
 										<form
 											x-show="editing"
 											method="POST"
-											action={ templ.SafeURL(fmt.Sprintf("/expenses/categories/%s", c.ID)) }
+											action={ templ.SafeURL(fmt.Sprintf("/categories/%s", c.ID)) }
 											class="flex gap-2"
 										>
 											<input
@@ -61,7 +61,7 @@ templ ExpensesCategoryList(categories []CategoryView) {
 											<button @click="editing = true" class="font-mono text-2xs text-parchment-dark hover:text-bone transition-colors tracking-wider uppercase">
 												Edit
 											</button>
-											<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/expenses/categories/%s/delete", c.ID)) } class="inline">
+											<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/categories/%s/delete", c.ID)) } class="inline">
 												<button type="submit" class="font-mono text-2xs text-parchment-dark hover:text-alliance transition-colors tracking-wider uppercase" onclick="return confirm('Delete this category?')">
 													Delete
 												</button>
@@ -82,21 +82,21 @@ templ ExpensesCategoryNew() {
 	@AppLayout("New Category", "/expenses") {
 		<div class="p-8">
 			<div class="mb-6">
-				<a href="/expenses/categories" class="font-mono text-2xs text-parchment-dark tracking-wider uppercase hover:text-bone transition-colors">
+				<a href="/categories" class="font-mono text-2xs text-parchment-dark tracking-wider uppercase hover:text-bone transition-colors">
 					&larr; Categories
 				</a>
 			</div>
 			<h1 class="font-display text-2xl text-bone mb-8">New Category</h1>
 			<div class="card-vessel max-w-sm">
 				<div class="section-label">Category Details</div>
-				<form method="POST" action="/expenses/categories" class="space-y-5">
+				<form method="POST" action="/categories" class="space-y-5">
 					<div>
 						<label for="name" class="label-mono block mb-2">Name</label>
 						<input type="text" id="name" name="name" required class="input-cortex" placeholder="e.g. Office Supplies"/>
 					</div>
 					<div class="flex gap-3 pt-2">
 						<button type="submit" class="btn btn-primary">Create Category</button>
-						<a href="/expenses/categories" class="btn btn-secondary">Cancel</a>
+						<a href="/categories" class="btn btn-secondary">Cancel</a>
 					</div>
 				</form>
 			</div>

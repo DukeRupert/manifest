@@ -56,12 +56,12 @@ func ExpensesCategoryList(categories []CategoryView) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " categories</p></div><a href=\"/expenses/categories/new\" class=\"btn btn-primary\">+ New Category</a></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " categories</p></div><a href=\"/categories/new\" class=\"btn btn-primary\">+ New Category</a></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if len(categories) == 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"card-vessel text-center py-12\"><p class=\"font-display text-xl text-parchment mb-2\">No categories yet</p><p class=\"text-sm text-parchment-dark mb-6\">Add a category to organize your expenses.</p><a href=\"/expenses/categories/new\" class=\"btn btn-primary\">+ New Category</a></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"card-vessel text-center py-12\"><p class=\"font-display text-xl text-parchment mb-2\">No categories yet</p><p class=\"text-sm text-parchment-dark mb-6\">Add a category to organize your expenses.</p><a href=\"/categories/new\" class=\"btn btn-primary\">+ New Category</a></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -102,7 +102,7 @@ func ExpensesCategoryList(categories []CategoryView) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var6 templ.SafeURL
-					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/expenses/categories/%s", c.ID)))
+					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/categories/%s", c.ID)))
 					if templ_7745c5c3_Err != nil {
 						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/expenses_categories.templ`, Line: 45, Col: 79}
 					}
@@ -115,7 +115,7 @@ func ExpensesCategoryList(categories []CategoryView) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var7 templ.SafeURL
-					templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/expenses/categories/%s/delete", c.ID)))
+					templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/categories/%s/delete", c.ID)))
 					if templ_7745c5c3_Err != nil {
 						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/expenses_categories.templ`, Line: 64, Col: 106}
 					}
@@ -180,7 +180,7 @@ func ExpensesCategoryNew() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"p-8\"><div class=\"mb-6\"><a href=\"/expenses/categories\" class=\"font-mono text-2xs text-parchment-dark tracking-wider uppercase hover:text-bone transition-colors\">&larr; Categories</a></div><h1 class=\"font-display text-2xl text-bone mb-8\">New Category</h1><div class=\"card-vessel max-w-sm\"><div class=\"section-label\">Category Details</div><form method=\"POST\" action=\"/expenses/categories\" class=\"space-y-5\"><div><label for=\"name\" class=\"label-mono block mb-2\">Name</label> <input type=\"text\" id=\"name\" name=\"name\" required class=\"input-cortex\" placeholder=\"e.g. Office Supplies\"></div><div class=\"flex gap-3 pt-2\"><button type=\"submit\" class=\"btn btn-primary\">Create Category</button> <a href=\"/expenses/categories\" class=\"btn btn-secondary\">Cancel</a></div></form></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"p-8\"><div class=\"mb-6\"><a href=\"/categories\" class=\"font-mono text-2xs text-parchment-dark tracking-wider uppercase hover:text-bone transition-colors\">&larr; Categories</a></div><h1 class=\"font-display text-2xl text-bone mb-8\">New Category</h1><div class=\"card-vessel max-w-sm\"><div class=\"section-label\">Category Details</div><form method=\"POST\" action=\"/categories\" class=\"space-y-5\"><div><label for=\"name\" class=\"label-mono block mb-2\">Name</label> <input type=\"text\" id=\"name\" name=\"name\" required class=\"input-cortex\" placeholder=\"e.g. Office Supplies\"></div><div class=\"flex gap-3 pt-2\"><button type=\"submit\" class=\"btn btn-primary\">Create Category</button> <a href=\"/categories\" class=\"btn btn-secondary\">Cancel</a></div></form></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

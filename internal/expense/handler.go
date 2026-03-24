@@ -44,7 +44,7 @@ func (h *Handler) CategoryCreate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("failed to create category: %v", err), http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/expenses/categories", http.StatusSeeOther)
+	http.Redirect(w, r, "/categories", http.StatusSeeOther)
 }
 
 func (h *Handler) CategoryUpdate(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +58,7 @@ func (h *Handler) CategoryUpdate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("failed to update category: %v", err), http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/expenses/categories", http.StatusSeeOther)
+	http.Redirect(w, r, "/categories", http.StatusSeeOther)
 }
 
 func (h *Handler) CategoryDelete(w http.ResponseWriter, r *http.Request) {
@@ -67,7 +67,7 @@ func (h *Handler) CategoryDelete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("failed to delete: %v", err), http.StatusBadRequest)
 		return
 	}
-	http.Redirect(w, r, "/expenses/categories", http.StatusSeeOther)
+	http.Redirect(w, r, "/categories", http.StatusSeeOther)
 }
 
 // --- Expense Handlers ---
