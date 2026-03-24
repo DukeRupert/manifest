@@ -42,7 +42,7 @@ templ ExpensesCategoryList(categories []CategoryView) {
 										<form
 											x-show="editing"
 											method="POST"
-											action={ templ.SafeURL(fmt.Sprintf("/expenses/categories/%d", c.ID)) }
+											action={ templ.SafeURL(fmt.Sprintf("/expenses/categories/%s", c.ID)) }
 											class="flex gap-2"
 										>
 											<input
@@ -61,7 +61,7 @@ templ ExpensesCategoryList(categories []CategoryView) {
 											<button @click="editing = true" class="font-mono text-2xs text-parchment-dark hover:text-bone transition-colors tracking-wider uppercase">
 												Edit
 											</button>
-											<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/expenses/categories/delete/%d", c.ID)) } class="inline">
+											<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/expenses/categories/%s/delete", c.ID)) } class="inline">
 												<button type="submit" class="font-mono text-2xs text-parchment-dark hover:text-alliance transition-colors tracking-wider uppercase" onclick="return confirm('Delete this category?')">
 													Delete
 												</button>

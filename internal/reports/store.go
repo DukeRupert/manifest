@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"fireflysoftware.dev/manifest/internal/auth"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -18,15 +19,16 @@ func NewStore(pool *pgxpool.Pool) *Store {
 // --- Dashboard Summary ---
 
 type DashboardSummary struct {
-	MonthRevenue   float64
-	ARCount        int
-	ARTotal        float64
-	YTDRevenue     float64
-	YTDExpenses    float64
-	YTDNet         float64
+	MonthRevenue float64
+	ARCount      int
+	ARTotal      float64
+	YTDRevenue   float64
+	YTDExpenses  float64
+	YTDNet       float64
 }
 
 func (s *Store) GetDashboardSummary(ctx context.Context) (*DashboardSummary, error) {
+	orgID := auth.OrgID(ctx)
 	now := time.Now()
 	yearStart := time.Date(now.Year(), 1, 1, 0, 0, 0, 0, time.UTC)
 	monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
@@ -36,8 +38,8 @@ func (s *Store) GetDashboardSummary(ctx context.Context) (*DashboardSummary, err
 	// This month revenue
 	s.pool.QueryRow(ctx, `
 		SELECT COALESCE(SUM(amount_paid_cents), 0) / 100.0
-		FROM invoices WHERE status = 'paid' AND paid_at >= $1
-	`, monthStart).Scan(&d.MonthRevenue)
+		FROM invoices WHERE status = 'paid' AND paid_at >= $1 AND org_id = $2
+	`, monthStart, orgID).Scan(&d.MonthRevenue)
 
 	// Outstanding AR
 	s.pool.QueryRow(ctx, `
@@ -46,21 +48,21 @@ func (s *Store) GetDashboardSummary(ctx context.Context) (*DashboardSummary, err
 			SELECT COALESCE(SUM(li.quantity * li.unit_price), 0) * (1 + i.tax_rate / 100) AS total
 			FROM invoices i
 			LEFT JOIN invoice_line_items li ON li.invoice_id = i.id
-			WHERE i.status IN ('sent', 'viewed')
+			WHERE i.status IN ('sent', 'viewed') AND i.org_id = $1
 			GROUP BY i.id
 		) sub
-	`).Scan(&d.ARCount, &d.ARTotal)
+	`, orgID).Scan(&d.ARCount, &d.ARTotal)
 
 	// YTD revenue
 	s.pool.QueryRow(ctx, `
 		SELECT COALESCE(SUM(amount_paid_cents), 0) / 100.0
-		FROM invoices WHERE status = 'paid' AND paid_at >= $1
-	`, yearStart).Scan(&d.YTDRevenue)
+		FROM invoices WHERE status = 'paid' AND paid_at >= $1 AND org_id = $2
+	`, yearStart, orgID).Scan(&d.YTDRevenue)
 
 	// YTD expenses
 	s.pool.QueryRow(ctx, `
-		SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE date >= $1
-	`, yearStart).Scan(&d.YTDExpenses)
+		SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE date >= $1 AND org_id = $2
+	`, yearStart, orgID).Scan(&d.YTDExpenses)
 
 	d.YTDNet = d.YTDRevenue - d.YTDExpenses
 
@@ -76,15 +78,16 @@ type RevenueRow struct {
 }
 
 func (s *Store) RevenueByMonth(ctx context.Context, year int) ([]RevenueRow, error) {
+	orgID := auth.OrgID(ctx)
 	rows, err := s.pool.Query(ctx, `
 		SELECT DATE_TRUNC('month', paid_at) AS month,
 		       COUNT(*) AS invoice_count,
 		       SUM(amount_paid_cents) / 100.0 AS revenue
 		FROM invoices
-		WHERE status = 'paid' AND EXTRACT(YEAR FROM paid_at) = $1
+		WHERE status = 'paid' AND EXTRACT(YEAR FROM paid_at) = $1 AND org_id = $2
 		GROUP BY month
 		ORDER BY month
-	`, year)
+	`, year, orgID)
 	if err != nil {
 		return nil, err
 	}
@@ -113,6 +116,7 @@ type ARRow struct {
 }
 
 func (s *Store) OutstandingAR(ctx context.Context) ([]ARRow, error) {
+	orgID := auth.OrgID(ctx)
 	rows, err := s.pool.Query(ctx, `
 		SELECT
 			i.number,
@@ -124,10 +128,10 @@ func (s *Store) OutstandingAR(ctx context.Context) ([]ARRow, error) {
 		FROM invoices i
 		JOIN clients c ON c.id = i.client_id
 		LEFT JOIN invoice_line_items li ON li.invoice_id = i.id
-		WHERE i.status IN ('sent', 'viewed')
+		WHERE i.status IN ('sent', 'viewed') AND i.org_id = $1
 		GROUP BY i.id, c.name
 		ORDER BY i.due_date ASC NULLS LAST
-	`)
+	`, orgID)
 	if err != nil {
 		return nil, err
 	}
@@ -159,15 +163,17 @@ type PLRow struct {
 }
 
 func (s *Store) ProfitAndLoss(ctx context.Context, from, to time.Time) ([]PLRow, error) {
+	orgID := auth.OrgID(ctx)
+
 	// Revenue by month
 	revenueMap := map[string]float64{}
 	rows, err := s.pool.Query(ctx, `
 		SELECT DATE_TRUNC('month', paid_at) AS month,
 		       SUM(amount_paid_cents) / 100.0 AS revenue
 		FROM invoices
-		WHERE status = 'paid' AND paid_at >= $1 AND paid_at < $2
+		WHERE status = 'paid' AND paid_at >= $1 AND paid_at < $2 AND org_id = $3
 		GROUP BY month
-	`, from, to)
+	`, from, to, orgID)
 	if err != nil {
 		return nil, err
 	}
@@ -188,9 +194,9 @@ func (s *Store) ProfitAndLoss(ctx context.Context, from, to time.Time) ([]PLRow,
 		SELECT DATE_TRUNC('month', date) AS month,
 		       SUM(amount) AS expenses
 		FROM expenses
-		WHERE date >= $1 AND date < $2
+		WHERE date >= $1 AND date < $2 AND org_id = $3
 		GROUP BY month
-	`, from, to)
+	`, from, to, orgID)
 	if err != nil {
 		return nil, err
 	}
@@ -206,16 +212,7 @@ func (s *Store) ProfitAndLoss(ctx context.Context, from, to time.Time) ([]PLRow,
 	rows.Close()
 
 	// Merge into per-month P&L
-	allMonths := map[string]bool{}
-	for k := range revenueMap {
-		allMonths[k] = true
-	}
-	for k := range expenseMap {
-		allMonths[k] = true
-	}
-
 	var result []PLRow
-	// Iterate from start to end month
 	cursor := time.Date(from.Year(), from.Month(), 1, 0, 0, 0, 0, time.UTC)
 	end := time.Date(to.Year(), to.Month(), 1, 0, 0, 0, 0, time.UTC)
 	for !cursor.After(end) {

@@ -103,7 +103,7 @@ func ClientsEdit(c *ClientView) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var5 templ.SafeURL
-			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/clients/%d", c.ID)))
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/clients/%s", c.ID)))
 			if templ_7745c5c3_Err != nil {
 				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/clients_form.templ`, Line: 26, Col: 61}
 			}
@@ -141,7 +141,7 @@ func ClientsEdit(c *ClientView) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = clientForm(c, fmt.Sprintf("/clients/%d", c.ID)).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = clientForm(c, fmt.Sprintf("/clients/%s", c.ID)).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -327,7 +327,7 @@ func clientForm(c *ClientView, action string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var15 templ.SafeURL
-			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/clients/%d", c.ID)))
+			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/clients/%s", c.ID)))
 			if templ_7745c5c3_Err != nil {
 				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/clients_form.templ`, Line: 125, Col: 61}
 			}

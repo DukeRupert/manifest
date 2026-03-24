@@ -23,22 +23,22 @@ templ InvoicesShow(inv *InvoiceView) {
 				<!-- Actions -->
 				<div class="flex flex-wrap gap-3">
 					if inv.Status == StatusDraft {
-						<a href={ templ.SafeURL(fmt.Sprintf("/invoices/%d/edit", inv.ID)) } class="btn btn-secondary">
+						<a href={ templ.SafeURL(fmt.Sprintf("/invoices/%s/edit", inv.ID)) } class="btn btn-secondary">
 							Edit
 						</a>
-						<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/invoices/%d/send", inv.ID)) }>
+						<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/invoices/%s/send", inv.ID)) }>
 							<button type="submit" class="btn btn-primary">
 								Send
 							</button>
 						</form>
-						<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/invoices/%d/void", inv.ID)) }>
+						<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/invoices/%s/void", inv.ID)) }>
 							<button type="submit" class="btn btn-danger" onclick="return confirm('Void this invoice? This cannot be undone.')">
 								Void
 							</button>
 						</form>
 					}
 					if inv.Status == StatusSent || inv.Status == StatusViewed {
-						<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/invoices/%d/void", inv.ID)) }>
+						<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/invoices/%s/void", inv.ID)) }>
 							<button type="submit" class="btn btn-danger" onclick="return confirm('Void this invoice? This cannot be undone.')">
 								Void
 							</button>

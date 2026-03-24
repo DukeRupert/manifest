@@ -23,14 +23,14 @@ templ ClientsEdit(c *ClientView) {
 	@AppLayout("Edit "+c.Name, "/clients") {
 		<div class="p-8">
 			<div class="mb-6">
-				<a href={ templ.SafeURL(fmt.Sprintf("/clients/%d", c.ID)) } class="font-mono text-2xs text-parchment-dark tracking-wider uppercase hover:text-bone transition-colors">
+				<a href={ templ.SafeURL(fmt.Sprintf("/clients/%s", c.ID)) } class="font-mono text-2xs text-parchment-dark tracking-wider uppercase hover:text-bone transition-colors">
 					&larr; { c.Name }
 				</a>
 			</div>
 			<h1 class="font-display text-2xl text-bone mb-8">Edit { c.Name }</h1>
 			<div class="card-vessel max-w-xl">
 				<div class="section-label">Client Details</div>
-				@clientForm(c, fmt.Sprintf("/clients/%d", c.ID))
+				@clientForm(c, fmt.Sprintf("/clients/%s", c.ID))
 			</div>
 		</div>
 	}
@@ -122,7 +122,7 @@ templ clientForm(c *ClientView, action string) {
 				}
 			</button>
 			if c != nil {
-				<a href={ templ.SafeURL(fmt.Sprintf("/clients/%d", c.ID)) } class="btn btn-secondary">
+				<a href={ templ.SafeURL(fmt.Sprintf("/clients/%s", c.ID)) } class="btn btn-secondary">
 					Cancel
 				</a>
 			} else {

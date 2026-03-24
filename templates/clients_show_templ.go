@@ -74,7 +74,7 @@ func ClientsShow(c *ClientView) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var5 templ.SafeURL
-			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/clients/%d/edit", c.ID)))
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/clients/%s/edit", c.ID)))
 			if templ_7745c5c3_Err != nil {
 				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/clients_show.templ`, Line: 21, Col: 67}
 			}
@@ -92,7 +92,7 @@ func ClientsShow(c *ClientView) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var6 templ.SafeURL
-				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/clients/%d/archive", c.ID)))
+				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/clients/%s/archive", c.ID)))
 				if templ_7745c5c3_Err != nil {
 					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/clients_show.templ`, Line: 25, Col: 90}
 				}

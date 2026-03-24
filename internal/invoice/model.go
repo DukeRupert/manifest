@@ -19,8 +19,8 @@ const (
 )
 
 type LineItem struct {
-	ID          int64
-	InvoiceID   int64
+	ID          string // UUID
+	InvoiceID   string // UUID
 	Description string
 	Quantity    float64
 	UnitPrice   float64
@@ -32,9 +32,10 @@ func (li LineItem) Subtotal() float64 {
 }
 
 type Invoice struct {
-	ID        int64
+	ID        string // UUID
+	OrgID     string // UUID
 	Number    string
-	ClientID  int64
+	ClientID  string // UUID (application-facing)
 	Client    client.Client
 	Status    Status
 	TaxRate   float64
@@ -42,17 +43,17 @@ type Invoice struct {
 	DueDate   *time.Time
 	IssuedAt  time.Time
 	PaidAt    *time.Time
-	ViewToken              string
-	StripePaymentIntentID  *string
-	StripeChargeID         *string
-	AmountPaidCents        *int64
-	LineItems              []LineItem
-	CreatedAt              time.Time
-	UpdatedAt              time.Time
+	ViewToken string
+	StripePaymentIntentID *string
+	StripeChargeID        *string
+	AmountPaidCents       *int64
+	LineItems             []LineItem
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
 }
 
 type MarkPaidParams struct {
-	InvoiceID       int64
+	InvoiceID       string // UUID
 	StripeChargeID  string
 	AmountPaidCents int64
 	PaidAt          time.Time
@@ -84,7 +85,7 @@ func GenerateViewToken() (string, error) {
 
 // InvoiceListItem is a denormalized row for the invoice list view.
 type InvoiceListItem struct {
-	ID         int64
+	ID         string // UUID
 	Number     string
 	ClientName string
 	Status     Status

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/term"
@@ -19,6 +20,40 @@ func runSeed() {
 		log.Fatalf("db connect: %v", err)
 	}
 	defer pool.Close()
+
+	ctx := context.Background()
+
+	// Org setup
+	fmt.Print("Org name [Firefly Software]: ")
+	var orgName string
+	fmt.Scanln(&orgName)
+	orgName = strings.TrimSpace(orgName)
+	if orgName == "" {
+		orgName = "Firefly Software"
+	}
+
+	// Derive slug from org name
+	slug := strings.ToLower(orgName)
+	slug = strings.ReplaceAll(slug, " ", "-")
+
+	// Find or create org
+	var orgID string
+	err = pool.QueryRow(ctx,
+		`INSERT INTO orgs (name, slug)
+		 VALUES ($1, $2)
+		 ON CONFLICT (slug) DO UPDATE SET name = $1
+		 RETURNING id`,
+		orgName, slug,
+	).Scan(&orgID)
+	if err != nil {
+		log.Fatalf("org setup: %v", err)
+	}
+	fmt.Printf("Org: %s (%s)\n", orgName, slug)
+
+	// User setup
+	fmt.Print("Name: ")
+	var name string
+	fmt.Scanln(&name)
 
 	fmt.Print("Email: ")
 	var email string
@@ -47,10 +82,12 @@ func runSeed() {
 		log.Fatalf("bcrypt: %v", err)
 	}
 
-	_, err = pool.Exec(context.Background(),
-		`INSERT INTO users (email, password) VALUES ($1, $2)
-		 ON CONFLICT (email) DO UPDATE SET password = $2, updated_at = NOW()`,
-		email, string(hash),
+	_, err = pool.Exec(ctx,
+		`INSERT INTO users (email, password_hash, org_id, name, role)
+		 VALUES ($1, $2, $3, $4, 'admin')
+		 ON CONFLICT ON CONSTRAINT users_org_email_unique
+		 DO UPDATE SET password_hash = $2, name = $4, updated_at = NOW()`,
+		email, string(hash), orgID, name,
 	)
 	if err != nil {
 		log.Fatalf("insert user: %v", err)

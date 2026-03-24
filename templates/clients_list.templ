@@ -42,7 +42,7 @@ templ ClientsList(clients []ClientView) {
 							for _, c := range clients {
 								<tr class="border-b border-slate/50 hover:bg-rust/5 transition-colors">
 									<td class="px-5 py-3">
-										<a href={ templ.SafeURL(fmt.Sprintf("/clients/%d", c.ID)) } class="text-bone hover:text-rust-light transition-colors font-body">
+										<a href={ templ.SafeURL(fmt.Sprintf("/clients/%s", c.ID)) } class="text-bone hover:text-rust-light transition-colors font-body">
 											{ c.Name }
 										</a>
 									</td>

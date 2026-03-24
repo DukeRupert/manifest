@@ -57,7 +57,7 @@ templ InvoicesList(invoices []InvoiceListItemView, activeFilter string) {
 							for _, inv := range invoices {
 								<tr class="border-b border-slate/50 hover:bg-rust/5 transition-colors">
 									<td class="px-5 py-3">
-										<a href={ templ.SafeURL(fmt.Sprintf("/invoices/%d", inv.ID)) } class="text-bone hover:text-rust-light transition-colors font-mono text-sm">
+										<a href={ templ.SafeURL(fmt.Sprintf("/invoices/%s", inv.ID)) } class="text-bone hover:text-rust-light transition-colors font-mono text-sm">
 											{ inv.Number }
 										</a>
 									</td>
@@ -84,7 +84,7 @@ templ InvoicesList(invoices []InvoiceListItemView, activeFilter string) {
 				<!-- Mobile cards -->
 				<div class="md:hidden space-y-3">
 					for _, inv := range invoices {
-						<a href={ templ.SafeURL(fmt.Sprintf("/invoices/%d", inv.ID)) } class="card-vessel block hover:border-rust/50 transition-colors">
+						<a href={ templ.SafeURL(fmt.Sprintf("/invoices/%s", inv.ID)) } class="card-vessel block hover:border-rust/50 transition-colors">
 							<div class="flex items-center justify-between mb-2">
 								<span class="font-mono text-sm text-bone">{ inv.Number }</span>
 								<span class={ StatusBadgeClass(inv.Status) }>{ string(inv.Status) }</span>

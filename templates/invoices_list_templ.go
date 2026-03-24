@@ -132,7 +132,7 @@ func InvoicesList(invoices []InvoiceListItemView, activeFilter string) templ.Com
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var5 templ.SafeURL
-					templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/invoices/%d", inv.ID)))
+					templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/invoices/%s", inv.ID)))
 					if templ_7745c5c3_Err != nil {
 						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/invoices_list.templ`, Line: 60, Col: 70}
 					}
@@ -255,7 +255,7 @@ func InvoicesList(invoices []InvoiceListItemView, activeFilter string) templ.Com
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var14 templ.SafeURL
-					templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/invoices/%d", inv.ID)))
+					templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/invoices/%s", inv.ID)))
 					if templ_7745c5c3_Err != nil {
 						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/invoices_list.templ`, Line: 87, Col: 66}
 					}

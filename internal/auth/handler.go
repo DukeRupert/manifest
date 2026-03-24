@@ -20,11 +20,11 @@ func (s *SessionStore) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
-	var userID int64
+	var userUUID string
 	var hash string
 	err := s.pool.QueryRow(r.Context(),
-		`SELECT id, password FROM users WHERE email = $1`, email,
-	).Scan(&userID, &hash)
+		`SELECT uuid, password_hash FROM users WHERE email = $1`, email,
+	).Scan(&userUUID, &hash)
 	if err != nil {
 		http.Redirect(w, r, "/login?error=invalid", http.StatusSeeOther)
 		return
@@ -35,7 +35,7 @@ func (s *SessionStore) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionID, err := s.CreateSession(r.Context(), userID)
+	rawToken, err := s.CreateSession(r.Context(), userUUID)
 	if err != nil {
 		http.Error(w, "session creation failed", http.StatusInternalServerError)
 		return
@@ -43,7 +43,7 @@ func (s *SessionStore) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     SessionCookieName,
-		Value:    sessionID,
+		Value:    rawToken,
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   true,

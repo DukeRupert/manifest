@@ -11,7 +11,7 @@ import (
 )
 
 type CreateIntentParams struct {
-	InvoiceID     int64
+	InvoiceID     string // UUID
 	InvoiceNumber string
 	AmountCents   int64
 	ClientEmail   string
@@ -51,7 +51,7 @@ func CreateOrGetIntent(ctx context.Context, store *invoice.Store, params CreateI
 	if params.ClientEmail != "" {
 		intentParams.ReceiptEmail = stripe.String(params.ClientEmail)
 	}
-	intentParams.AddMetadata("invoice_id", fmt.Sprintf("%d", params.InvoiceID))
+	intentParams.AddMetadata("invoice_id", params.InvoiceID)
 	intentParams.AddMetadata("invoice_number", params.InvoiceNumber)
 
 	pi, err := paymentintent.New(intentParams)

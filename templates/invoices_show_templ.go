@@ -114,7 +114,7 @@ func InvoicesShow(inv *InvoiceView) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var8 templ.SafeURL
-				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/invoices/%d/edit", inv.ID)))
+				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/invoices/%s/edit", inv.ID)))
 				if templ_7745c5c3_Err != nil {
 					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/invoices_show.templ`, Line: 26, Col: 71}
 				}
@@ -127,7 +127,7 @@ func InvoicesShow(inv *InvoiceView) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var9 templ.SafeURL
-				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/invoices/%d/send", inv.ID)))
+				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/invoices/%s/send", inv.ID)))
 				if templ_7745c5c3_Err != nil {
 					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/invoices_show.templ`, Line: 29, Col: 90}
 				}
@@ -140,7 +140,7 @@ func InvoicesShow(inv *InvoiceView) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var10 templ.SafeURL
-				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/invoices/%d/void", inv.ID)))
+				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/invoices/%s/void", inv.ID)))
 				if templ_7745c5c3_Err != nil {
 					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/invoices_show.templ`, Line: 34, Col: 90}
 				}
@@ -159,7 +159,7 @@ func InvoicesShow(inv *InvoiceView) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var11 templ.SafeURL
-				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/invoices/%d/void", inv.ID)))
+				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/invoices/%s/void", inv.ID)))
 				if templ_7745c5c3_Err != nil {
 					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/invoices_show.templ`, Line: 41, Col: 90}
 				}

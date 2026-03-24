@@ -76,7 +76,7 @@ func ClientsList(clients []ClientView) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var4 templ.SafeURL
-					templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/clients/%d", c.ID)))
+					templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/clients/%s", c.ID)))
 					if templ_7745c5c3_Err != nil {
 						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/clients_list.templ`, Line: 45, Col: 67}
 					}

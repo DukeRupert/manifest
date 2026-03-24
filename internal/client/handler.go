@@ -3,7 +3,6 @@ package client
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"fireflysoftware.dev/manifest/templates"
 )
@@ -71,15 +70,11 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/clients/%d", c.ID), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/clients/%s", c.ID), http.StatusSeeOther)
 }
 
 func (h *Handler) Show(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
+	id := r.PathValue("id")
 
 	c, err := h.store.Get(r.Context(), id)
 	if err != nil {
@@ -92,11 +87,7 @@ func (h *Handler) Show(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Edit(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
+	id := r.PathValue("id")
 
 	c, err := h.store.Get(r.Context(), id)
 	if err != nil {
@@ -109,11 +100,7 @@ func (h *Handler) Edit(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
+	id := r.PathValue("id")
 
 	c := &Client{
 		ID:             id,
@@ -129,15 +116,11 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/clients/%d", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/clients/%s", id), http.StatusSeeOther)
 }
 
 func (h *Handler) Archive(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
+	id := r.PathValue("id")
 
 	if err := h.store.Archive(r.Context(), id); err != nil {
 		http.Error(w, "failed to archive client", http.StatusInternalServerError)

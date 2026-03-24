@@ -48,11 +48,7 @@ func (h *Handler) CategoryCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CategoryUpdate(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
+	id := r.PathValue("id") // UUID
 	name := strings.TrimSpace(r.FormValue("name"))
 	if name == "" {
 		http.Error(w, "name required", http.StatusBadRequest)
@@ -66,11 +62,7 @@ func (h *Handler) CategoryUpdate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CategoryDelete(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
+	id := r.PathValue("id") // UUID
 	if err := h.store.DeleteCategory(r.Context(), id); err != nil {
 		http.Error(w, fmt.Sprintf("failed to delete: %v", err), http.StatusBadRequest)
 		return
@@ -83,7 +75,7 @@ func (h *Handler) CategoryDelete(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	filter := ListFilter{}
 	filterFrom, filterTo := "", ""
-	var filterCat int64
+	var filterCat string
 
 	if from := r.URL.Query().Get("from"); from != "" {
 		if t, err := time.Parse("2006-01-02", from); err == nil {
@@ -98,10 +90,8 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if catID := r.URL.Query().Get("category_id"); catID != "" {
-		if id, err := strconv.ParseInt(catID, 10, 64); err == nil {
-			filter.CategoryID = &id
-			filterCat = id
-		}
+		filter.CategoryID = &catID
+		filterCat = catID
 	}
 
 	expenses, err := h.store.List(r.Context(), filter)
@@ -136,7 +126,7 @@ func (h *Handler) New(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
-	catID, _ := strconv.ParseInt(r.FormValue("category_id"), 10, 64)
+	catID := r.FormValue("category_id") // UUID
 	amount, _ := strconv.ParseFloat(r.FormValue("amount"), 64)
 	date, _ := time.Parse("2006-01-02", r.FormValue("date"))
 
@@ -157,11 +147,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Edit(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
+	id := r.PathValue("id") // UUID
 
 	e, err := h.store.Get(r.Context(), id)
 	if err != nil {
@@ -175,13 +161,9 @@ func (h *Handler) Edit(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
+	id := r.PathValue("id") // UUID
 
-	catID, _ := strconv.ParseInt(r.FormValue("category_id"), 10, 64)
+	catID := r.FormValue("category_id") // UUID
 	amount, _ := strconv.ParseFloat(r.FormValue("amount"), 64)
 	date, _ := time.Parse("2006-01-02", r.FormValue("date"))
 
@@ -203,11 +185,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
+	id := r.PathValue("id") // UUID
 
 	if err := h.store.Delete(r.Context(), id); err != nil {
 		http.Error(w, fmt.Sprintf("failed to delete: %v", err), http.StatusInternalServerError)

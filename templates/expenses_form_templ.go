@@ -102,7 +102,7 @@ func ExpensesEdit(e *ExpenseView, categories []CategoryView) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = expenseForm(e, categories, "", fmt.Sprintf("/expenses/%d", e.ID)).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = expenseForm(e, categories, "", fmt.Sprintf("/expenses/%s", e.ID)).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -111,7 +111,7 @@ func ExpensesEdit(e *ExpenseView, categories []CategoryView) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var5 templ.SafeURL
-			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/expenses/delete/%d", e.ID)))
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/expenses/%s/delete", e.ID)))
 			if templ_7745c5c3_Err != nil {
 				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/expenses_form.templ`, Line: 37, Col: 88}
 			}
@@ -265,9 +265,9 @@ func expenseForm(e *ExpenseView, categories []CategoryView, today string, action
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var12 string
-				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", c.ID))
+				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(c.ID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/expenses_form.templ`, Line: 98, Col: 46}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/expenses_form.templ`, Line: 98, Col: 27}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -280,7 +280,7 @@ func expenseForm(e *ExpenseView, categories []CategoryView, today string, action
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(c.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/expenses_form.templ`, Line: 98, Col: 66}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/expenses_form.templ`, Line: 98, Col: 47}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
@@ -296,9 +296,9 @@ func expenseForm(e *ExpenseView, categories []CategoryView, today string, action
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var14 string
-				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", c.ID))
+				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(c.ID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/expenses_form.templ`, Line: 100, Col: 46}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/expenses_form.templ`, Line: 100, Col: 27}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 				if templ_7745c5c3_Err != nil {
@@ -311,7 +311,7 @@ func expenseForm(e *ExpenseView, categories []CategoryView, today string, action
 				var templ_7745c5c3_Var15 string
 				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(c.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/expenses_form.templ`, Line: 100, Col: 57}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/expenses_form.templ`, Line: 100, Col: 38}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 				if templ_7745c5c3_Err != nil {

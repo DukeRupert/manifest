@@ -7,7 +7,7 @@ import (
 
 // ClientView is a view-layer model to avoid import cycles with internal/client.
 type ClientView struct {
-	ID             int64
+	ID             string
 	Name           string
 	Slug           string
 	Email          string
@@ -48,7 +48,7 @@ func StatusBadgeClass(s InvoiceStatus) string {
 
 // InvoiceListItemView is a denormalized row for the invoice list.
 type InvoiceListItemView struct {
-	ID         int64
+	ID         string
 	Number     string
 	ClientName string
 	Status     InvoiceStatus
@@ -77,7 +77,7 @@ func (i InvoiceListItemView) FormatIssuedAt() string {
 
 // LineItemView is a view-layer line item.
 type LineItemView struct {
-	ID          int64
+	ID          string
 	Description string
 	Quantity    float64
 	UnitPrice   float64
@@ -105,9 +105,9 @@ func (li LineItemView) FormatSubtotal() string {
 
 // InvoiceView is the full invoice for show/edit pages.
 type InvoiceView struct {
-	ID         int64
+	ID         string
 	Number     string
-	ClientID   int64
+	ClientID   string
 	ClientName string
 	ClientSlug string
 	Status     InvoiceStatus
@@ -299,14 +299,14 @@ func (p PLReportView) IsNetNegative() bool        { return p.TotalNet < 0 }
 
 // CategoryView is a view-layer expense category.
 type CategoryView struct {
-	ID   int64
+	ID   string
 	Name string
 }
 
 // ExpenseView is a view-layer expense for list and detail pages.
 type ExpenseView struct {
-	ID           int64
-	CategoryID   int64
+	ID           string
+	CategoryID   string
 	CategoryName string
 	Vendor       string
 	Amount       float64
@@ -336,7 +336,7 @@ type ExpenseListData struct {
 	Categories []CategoryView
 	FilterFrom string
 	FilterTo   string
-	FilterCat  int64
+	FilterCat  string
 	Total      float64
 }
 

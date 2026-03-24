@@ -102,7 +102,7 @@ func ExpensesCategoryList(categories []CategoryView) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var6 templ.SafeURL
-					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/expenses/categories/%d", c.ID)))
+					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/expenses/categories/%s", c.ID)))
 					if templ_7745c5c3_Err != nil {
 						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/expenses_categories.templ`, Line: 45, Col: 79}
 					}
@@ -115,7 +115,7 @@ func ExpensesCategoryList(categories []CategoryView) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var7 templ.SafeURL
-					templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/expenses/categories/delete/%d", c.ID)))
+					templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/expenses/categories/%s/delete", c.ID)))
 					if templ_7745c5c3_Err != nil {
 						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/expenses_categories.templ`, Line: 64, Col: 106}
 					}

@@ -9,6 +9,7 @@ import (
 type contextKey string
 
 const userKey contextKey = "user"
+const orgKey contextKey = "org"
 
 func (s *SessionStore) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -25,11 +26,19 @@ func (s *SessionStore) Middleware(next http.Handler) http.Handler {
 		}
 
 		ctx := context.WithValue(r.Context(), userKey, session.UserID)
+		ctx = context.WithValue(ctx, orgKey, session.OrgID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func UserID(ctx context.Context) int64 {
-	id, _ := ctx.Value(userKey).(int64)
+// UserID returns the authenticated user's UUID from the request context.
+func UserID(ctx context.Context) string {
+	id, _ := ctx.Value(userKey).(string)
+	return id
+}
+
+// OrgID returns the authenticated user's org UUID from the request context.
+func OrgID(ctx context.Context) string {
+	id, _ := ctx.Value(orgKey).(string)
 	return id
 }

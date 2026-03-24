@@ -22,7 +22,7 @@ templ InvoicesNew(clients []ClientView, defaultTaxRate float64) {
 								<select id="client_id" name="client_id" required class="input-cortex">
 									<option value="">Select client...</option>
 									for _, c := range clients {
-										<option value={ fmt.Sprintf("%d", c.ID) }>{ c.Name }</option>
+										<option value={ c.ID }>{ c.Name }</option>
 									}
 								</select>
 							</div>
@@ -68,13 +68,13 @@ templ InvoicesEdit(inv *InvoiceView, clients []ClientView) {
 	@AppLayout("Edit "+inv.Number, "/invoices") {
 		<div class="p-8">
 			<div class="mb-6">
-				<a href={ templ.SafeURL(fmt.Sprintf("/invoices/%d", inv.ID)) } class="font-mono text-2xs text-parchment-dark tracking-wider uppercase hover:text-bone transition-colors">
+				<a href={ templ.SafeURL(fmt.Sprintf("/invoices/%s", inv.ID)) } class="font-mono text-2xs text-parchment-dark tracking-wider uppercase hover:text-bone transition-colors">
 					&larr; { inv.Number }
 				</a>
 			</div>
 			<h1 class="font-display text-2xl text-bone mb-8">Edit { inv.Number }</h1>
 			<div class="max-w-3xl" x-data={ fmt.Sprintf(`invoiceForm(%s)`, lineItemsJSON(inv, inv.TaxRate)) }>
-				<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/invoices/%d", inv.ID)) } class="space-y-8">
+				<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/invoices/%s", inv.ID)) } class="space-y-8">
 					<div class="card-vessel">
 						<div class="section-label">Invoice Details</div>
 						<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -116,7 +116,7 @@ templ InvoicesEdit(inv *InvoiceView, clients []ClientView) {
 					</div>
 					<div class="flex gap-3">
 						<button type="submit" class="btn btn-primary">Save Changes</button>
-						<a href={ templ.SafeURL(fmt.Sprintf("/invoices/%d", inv.ID)) } class="btn btn-secondary">Cancel</a>
+						<a href={ templ.SafeURL(fmt.Sprintf("/invoices/%s", inv.ID)) } class="btn btn-secondary">Cancel</a>
 					</div>
 				</form>
 			</div>

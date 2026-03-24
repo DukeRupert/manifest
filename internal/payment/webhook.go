@@ -80,6 +80,6 @@ func (h *WebhookHandler) handlePaymentSucceeded(ctx context.Context, pi *stripe.
 		PaidAt:          time.Now(),
 	})
 	if err != nil {
-		log.Printf("webhook: mark paid failed for invoice %d: %v", inv.ID, err)
+		log.Printf("webhook: mark paid failed for invoice %s: %v", inv.ID, err)
 	}
 }

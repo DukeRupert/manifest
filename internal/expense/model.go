@@ -3,14 +3,16 @@ package expense
 import "time"
 
 type Category struct {
-	ID        int64
+	ID        string // UUID
+	OrgID     string // UUID
 	Name      string
 	CreatedAt time.Time
 }
 
 type Expense struct {
-	ID         int64
-	CategoryID int64
+	ID         string // UUID
+	OrgID      string // UUID
+	CategoryID string // UUID
 	Category   Category
 	Vendor     string
 	Amount     float64

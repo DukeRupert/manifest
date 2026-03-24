@@ -81,14 +81,14 @@ func (h *Handler) New(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
-	clientID, err := strconv.ParseInt(r.FormValue("client_id"), 10, 64)
-	if err != nil {
-		http.Error(w, "invalid client", http.StatusBadRequest)
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "invalid form data", http.StatusBadRequest)
 		return
 	}
 
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "invalid form data", http.StatusBadRequest)
+	clientID := r.FormValue("client_id") // UUID string
+	if clientID == "" {
+		http.Error(w, "invalid client", http.StatusBadRequest)
 		return
 	}
 
@@ -140,15 +140,11 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/invoices/%d", inv.ID), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/invoices/%s", inv.ID), http.StatusSeeOther)
 }
 
 func (h *Handler) Show(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
+	id := r.PathValue("id")
 
 	inv, err := h.store.Get(r.Context(), id)
 	if err != nil {
@@ -161,11 +157,7 @@ func (h *Handler) Show(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Edit(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
+	id := r.PathValue("id")
 
 	inv, err := h.store.Get(r.Context(), id)
 	if err != nil {
@@ -194,11 +186,7 @@ func (h *Handler) Edit(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
+	id := r.PathValue("id")
 
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "invalid form data", http.StatusBadRequest)
@@ -251,37 +239,29 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/invoices/%d", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/invoices/%s", id), http.StatusSeeOther)
 }
 
 func (h *Handler) Send(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
+	id := r.PathValue("id")
 
 	if err := h.store.Transition(r.Context(), id, StatusSent); err != nil {
 		http.Error(w, fmt.Sprintf("failed to send: %v", err), http.StatusBadRequest)
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/invoices/%d", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/invoices/%s", id), http.StatusSeeOther)
 }
 
 func (h *Handler) Void(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
+	id := r.PathValue("id")
 
 	if err := h.store.Transition(r.Context(), id, StatusVoid); err != nil {
 		http.Error(w, fmt.Sprintf("failed to void: %v", err), http.StatusBadRequest)
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/invoices/%d", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/invoices/%s", id), http.StatusSeeOther)
 }
 
 // PublicView renders the public invoice page (no auth required).
@@ -303,7 +283,7 @@ func (h *Handler) PublicView(w http.ResponseWriter, r *http.Request) {
 	// If already paid, render paid confirmation
 	if inv.Status == StatusPaid {
 		v := toInvoiceView(inv)
-		st, _ := h.settingsStore.Get(r.Context())
+		st, _ := h.settingsStore.GetByOrgID(r.Context(), inv.OrgID)
 		businessName := ""
 		if st != nil {
 			businessName = st.BusinessName
@@ -312,7 +292,7 @@ func (h *Handler) PublicView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	st, _ := h.settingsStore.Get(r.Context())
+	st, _ := h.settingsStore.GetByOrgID(r.Context(), inv.OrgID)
 
 	// Create or retrieve PaymentIntent if Stripe is configured
 	var clientSecret string

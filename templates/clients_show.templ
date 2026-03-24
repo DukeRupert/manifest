@@ -18,11 +18,11 @@ templ ClientsShow(c *ClientView) {
 					<span class="badge badge-crew mt-2">{ c.Slug }</span>
 				</div>
 				<div class="flex gap-3">
-					<a href={ templ.SafeURL(fmt.Sprintf("/clients/%d/edit", c.ID)) } class="btn btn-secondary">
+					<a href={ templ.SafeURL(fmt.Sprintf("/clients/%s/edit", c.ID)) } class="btn btn-secondary">
 						Edit
 					</a>
 					if c.ArchivedAt == nil {
-						<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/clients/%d/archive", c.ID)) }>
+						<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/clients/%s/archive", c.ID)) }>
 							<button type="submit" class="btn btn-danger" onclick="return confirm('Archive this client?')">
 								Archive
 							</button>
