@@ -43,7 +43,7 @@ func HashToken(raw string) string {
 	return hex.EncodeToString(h[:])
 }
 
-func (s *SessionStore) CreateSession(ctx context.Context, userID string) (string, error) {
+func (s *SessionStore) CreateSession(ctx context.Context, userUUID string) (string, error) {
 	rawToken, err := GenerateToken()
 	if err != nil {
 		return "", err
@@ -51,9 +51,10 @@ func (s *SessionStore) CreateSession(ctx context.Context, userID string) (string
 	tokenHash := HashToken(rawToken)
 	expiresAt := time.Now().Add(SessionDuration)
 	_, err = s.pool.Exec(ctx,
-		`INSERT INTO sessions (id, user_id, token_hash, expires_at)
-		 VALUES ($1, $2, $3, $4)`,
-		rawToken, userID, tokenHash, expiresAt,
+		`INSERT INTO sessions (user_id, token_hash, expires_at)
+		 SELECT id, $1, $2
+		 FROM users WHERE uuid = $3`,
+		tokenHash, expiresAt, userUUID,
 	)
 	if err != nil {
 		return "", err
