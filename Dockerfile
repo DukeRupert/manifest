@@ -18,8 +18,9 @@ COPY . .
 # Build Tailwind CSS
 RUN ./tailwindcss -i static/css/input.css -o static/css/app.css --minify
 
-# Build Go binary
+# Build Go binary and install goose
 RUN CGO_ENABLED=0 GOOS=linux go build -o manifest ./cmd/manifest
+RUN CGO_ENABLED=0 go install github.com/pressly/goose/v3/cmd/goose@latest
 
 # Runtime stage
 FROM alpine:3.21
@@ -29,6 +30,7 @@ RUN apk add --no-cache ca-certificates
 WORKDIR /app
 
 COPY --from=builder /app/manifest .
+COPY --from=builder /go/bin/goose .
 COPY --from=builder /app/migrations ./migrations
 COPY --from=builder /app/static ./static
 
