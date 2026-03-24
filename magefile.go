@@ -21,7 +21,7 @@ func Templ() error {
 // CSS compiles Tailwind CSS.
 func CSS() error {
 	fmt.Println("Building CSS...")
-	return sh.Run("./tailwindcss", "-c", "tailwind.config.js", "-i", "static/css/input.css", "-o", "static/css/app.css", "--minify")
+	return sh.Run("./tailwindcss", "-i", "static/css/input.css", "-o", "static/css/app.css", "--minify")
 }
 
 // Build generates templ, compiles CSS, and builds the manifest binary.

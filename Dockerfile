@@ -16,7 +16,7 @@ RUN go mod download
 COPY . .
 
 # Build Tailwind CSS
-RUN ./tailwindcss -c tailwind.config.js -i static/css/input.css -o static/css/app.css --minify
+RUN ./tailwindcss -i static/css/input.css -o static/css/app.css --minify
 
 # Build Go binary
 RUN CGO_ENABLED=0 GOOS=linux go build -o manifest ./cmd/manifest

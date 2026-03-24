@@ -1,9 +1,345 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
+/* ── SOURCE PATHS ──────────────────────────────────────────────────────── */
+@source "../../templates";
+@source "../js";
+
+/* ── THEME TOKENS ──────────────────────────────────────────────────────── */
+/* Serenity UI System — Firefly-inspired design tokens                     */
+/* Font stack (load via Google Fonts or self-host):                        */
+/*   Display / Headings : Playfair Display (400, 700)                     */
+/*   Body               : Crimson Pro (400, 400i, 600)                    */
+/*   Mono / System      : Share Tech Mono (400)                           */
+
+@theme {
+  /* Reset default colors — we use a custom-only palette */
+  --color-*: initial;
+
+  /* ── WARM FOREGROUND — ship interior, lantern light, dust ────────── */
+  --color-rust: #C4531A;
+  --color-rust-light: #E8784A;
+  --color-rust-dark: #8A3610;
+  --color-rust-dim: rgba(196, 83, 26, 0.15);
+  --color-rust-border: rgba(196, 83, 26, 0.25);
+
+  --color-amber: #D4922A;
+  --color-amber-light: #F0B84A;
+  --color-amber-dark: #9A6A1A;
+  --color-amber-dim: rgba(212, 146, 42, 0.12);
+
+  --color-bone: #E8DCC8;
+
+  --color-parchment: #D4C5A0;
+  --color-parchment-dark: #B8A882;
+
+  --color-gold: #C8AA50;
+  --color-gold-light: #E0C870;
+
+  /* ── COOL BACKGROUND — the Black, deep space ────────────────────── */
+  --color-slate: #3A4A5C;
+  --color-slate-light: #4E6278;
+  --color-slate-dark: #232F3C;
+  --color-slate-deep: #151E28;
+
+  --color-space: #0D1520;
+  --color-space-void: #070D15;
+
+  /* ── ACCENT — Cortex system, jade terminal green ─────────────────── */
+  --color-jade: #3D7A6A;
+  --color-jade-light: #5BA090;
+  --color-jade-dark: #274F44;
+
+  /* ── SEMANTIC ────────────────────────────────────────────────────── */
+  --color-alliance: #B83030;
+  --color-cortex: #8BAAC4;
+
+  /* Keep white/black/transparent available */
+  --color-white: #fff;
+  --color-black: #000;
+  --color-transparent: transparent;
+
+  /* ── FONTS ────────────────────────────────────────────────────────── */
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body: "Crimson Pro", Georgia, serif;
+  --font-mono: "Share Tech Mono", monospace;
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+
+  /* ── FONT SIZES ──────────────────────────────────────────────────── */
+  --text-2xs: 10px;
+  --text-2xs--line-height: 1.4;
+  --text-xs: 12px;
+  --text-xs--line-height: 1.5;
+  --text-sm: 13px;
+  --text-sm--line-height: 1.6;
+  --text-base: 16px;
+  --text-base--line-height: 1.7;
+  --text-lg: 18px;
+  --text-lg--line-height: 1.6;
+  --text-xl: 22px;
+  --text-xl--line-height: 1.4;
+  --text-2xl: 28px;
+  --text-2xl--line-height: 1.2;
+  --text-3xl: 36px;
+  --text-3xl--line-height: 1.1;
+  --text-4xl: 48px;
+  --text-4xl--line-height: 1.0;
+
+  /* ── LETTER SPACING ──────────────────────────────────────────────── */
+  --tracking-tight: -0.01em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.06em;
+  --tracking-wider: 0.12em;
+  --tracking-widest: 0.25em;
+  --tracking-cortex: 0.3em;
+
+  /* ── BORDER RADIUS ───────────────────────────────────────────────── */
+  --radius-none: 0;
+  --radius-sm: 2px;
+  --radius: 3px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 8px;
+  --radius-full: 9999px;
+
+  /* ── SHADOWS — glow-only, no drop shadows ────────────────────────── */
+  --shadow-none: none;
+  --shadow-rust: 0 0 0 2px rgba(196, 83, 26, 0.4);
+  --shadow-amber: 0 0 0 2px rgba(212, 146, 42, 0.4);
+  --shadow-jade: 0 0 0 2px rgba(61, 122, 106, 0.4);
+  --shadow-focus: 0 0 0 2px rgba(196, 83, 26, 0.6);
+}
+
+/* ── BASE STYLES ───────────────────────────────────────────────────────── */
 @layer base {
   body {
     @apply bg-space font-body text-bone antialiased;
   }
+}
+
+/* ── COMPONENTS ────────────────────────────────────────────────────────── */
+@layer components {
+
+  /* ── BUTTONS ─────────────────────────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 150ms;
+    user-select: none;
+    text-decoration: none;
+  }
+  .btn-primary {
+    background: var(--color-rust);
+    color: var(--color-bone);
+    border-color: var(--color-rust-light);
+    &:hover { background: var(--color-rust-light); }
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--color-parchment);
+    border-color: var(--color-rust-border);
+    &:hover {
+      border-color: var(--color-rust);
+      color: var(--color-bone);
+    }
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-amber-light);
+    &:hover { color: var(--color-amber); }
+  }
+  .btn-danger {
+    background: transparent;
+    color: var(--color-alliance);
+    border-color: var(--color-alliance);
+    &:hover { background: rgba(184, 48, 48, 0.12); }
+  }
+
+  /* ── NAV LINKS ───────────────────────────────────────────────────── */
+  .nav-link {
+    display: block;
+    padding: 8px 20px;
+    margin-left: 12px;
+    margin-right: 12px;
+    border-radius: var(--radius);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-parchment-dark);
+    text-decoration: none;
+    transition: all 150ms;
+    border-left: 2px solid transparent;
+    &:hover {
+      color: var(--color-bone);
+      background: rgba(196, 83, 26, 0.08);
+    }
+  }
+  .nav-link-active {
+    color: var(--color-bone);
+    border-left-color: var(--color-rust);
+    background: rgba(196, 83, 26, 0.12);
+  }
+
+  /* ── CARDS ───────────────────────────────────────────────────────── */
+  .card-vessel {
+    background: var(--color-slate-dark);
+    border: 1px solid rgba(196, 83, 26, 0.25);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    position: relative;
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 3px;
+      height: 100%;
+      background: var(--color-rust);
+      border-radius: 4px 0 0 4px;
+    }
+  }
+  .card-cortex {
+    background: var(--color-space-void);
+    border: 1px solid rgba(61, 122, 106, 0.3);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-jade-light);
+    line-height: 2;
+  }
+
+  /* ── FORM INPUTS ─────────────────────────────────────────────────── */
+  .input-cortex {
+    background: var(--color-slate-dark);
+    border: 1px solid rgba(196, 83, 26, 0.25);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    color: var(--color-bone);
+    font-family: var(--font-body);
+    font-size: 15px;
+    width: 100%;
+    outline: none;
+    transition: border-color 150ms;
+    &::placeholder { color: var(--color-parchment-dark); }
+    &:focus {
+      border-color: var(--color-rust);
+      box-shadow: var(--shadow-focus);
+    }
+  }
+
+  /* ── BADGES ──────────────────────────────────────────────────────── */
+  .badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+  }
+  .badge-crew    { background: rgba(196, 83, 26, 0.2);  color: var(--color-rust-light);  border: 1px solid rgba(196, 83, 26, 0.4); }
+  .badge-guild   { background: rgba(61, 122, 106, 0.2); color: var(--color-jade-light);  border: 1px solid rgba(61, 122, 106, 0.4); }
+  .badge-cortex  { background: rgba(78, 98, 120, 0.2);  color: var(--color-cortex);      border: 1px solid rgba(78, 98, 120, 0.4); }
+  .badge-wanted  { background: rgba(184, 48, 48, 0.2);  color: #D47070;                  border: 1px solid rgba(184, 48, 48, 0.4); }
+  .badge-gold    { background: rgba(200, 170, 80, 0.2); color: var(--color-gold);        border: 1px solid rgba(200, 170, 80, 0.4); }
+
+  /* ── ALERTS ──────────────────────────────────────────────────────── */
+  .alert {
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    border-left: 3px solid;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .alert-warning { background: rgba(212, 146, 42, 0.1);  border-color: var(--color-amber);    color: var(--color-amber-light); }
+  .alert-danger  { background: rgba(184, 48, 48, 0.1);   border-color: var(--color-alliance);  color: #D47070; }
+  .alert-info    { background: rgba(78, 98, 120, 0.2);   border-color: var(--color-cortex);    color: var(--color-cortex); }
+  .alert-success { background: rgba(61, 122, 106, 0.1);  border-color: var(--color-jade);      color: var(--color-jade-light); }
+
+  /* ── SECTION LABEL ───────────────────────────────────────────────── */
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--color-rust);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    &::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: rgba(196, 83, 26, 0.25);
+      max-width: 200px;
+    }
+  }
+
+  /* ── METER / PROGRESS BAR ────────────────────────────────────────── */
+  .meter-track {
+    height: 4px;
+    background: var(--color-slate-dark);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .meter-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 400ms ease;
+  }
+  .meter-rust  { background: var(--color-rust); }
+  .meter-amber { background: var(--color-amber); }
+  .meter-jade  { background: var(--color-jade); }
+  .meter-red   { background: var(--color-alliance); }
+}
+
+/* ── CUSTOM UTILITIES ──────────────────────────────────────────────────── */
+
+/* Cortex scanline overlay (apply to positioned wrapper) */
+@utility scanlines {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(0, 0, 0, 0.08) 2px, rgba(0, 0, 0, 0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 10;
+  }
+}
+
+/* Mono label utility */
+@utility label-mono {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--color-parchment-dark);
+}
+
+/* Amber glow on text */
+@utility text-glow-amber {
+  text-shadow: 0 0 12px rgba(212, 146, 42, 0.5);
+}
+
+/* Jade glow on text */
+@utility text-glow-jade {
+  text-shadow: 0 0 12px rgba(61, 122, 106, 0.6);
 }
