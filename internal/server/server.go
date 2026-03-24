@@ -64,7 +64,7 @@ func New(authStore *auth.SessionStore, clientHandler *client.Handler, invoiceHan
 	protected.HandleFunc("GET /expenses/categories/new", expenseHandler.CategoryNew)
 	protected.HandleFunc("POST /expenses/categories", expenseHandler.CategoryCreate)
 	protected.HandleFunc("POST /expenses/categories/{id}", expenseHandler.CategoryUpdate)
-	protected.HandleFunc("POST /expenses/categories/delete/{id}", expenseHandler.CategoryDelete)
+	protected.HandleFunc("POST /expenses/categories/{id}/delete", expenseHandler.CategoryDelete)
 
 	// Expenses
 	protected.HandleFunc("GET /expenses", expenseHandler.List)
@@ -72,7 +72,7 @@ func New(authStore *auth.SessionStore, clientHandler *client.Handler, invoiceHan
 	protected.HandleFunc("POST /expenses", expenseHandler.Create)
 	protected.HandleFunc("GET /expenses/{id}/edit", expenseHandler.Edit)
 	protected.HandleFunc("POST /expenses/{id}", expenseHandler.Update)
-	protected.HandleFunc("POST /expenses/delete/{id}", expenseHandler.Delete)
+	protected.HandleFunc("POST /expenses/{id}/delete", expenseHandler.Delete)
 
 	// Reports
 	protected.HandleFunc("GET /reports", reportsHandler.Index)
